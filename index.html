@@ -27,9 +27,32 @@ html,body{height:100%;margin:0;background:#150d3a;overflow:hidden;color:var(--in
 #inv button{background:none;border:0;color:var(--ink);font:inherit;padding:6px 14px;border-bottom:2px solid transparent;cursor:pointer}
 #inv button.on{border-color:var(--hot);font-weight:700}
 .row{padding:8px 4px;border-bottom:1px solid #fff2;cursor:pointer}.row i{float:right;opacity:.7}
-#start{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 70%,#ff7a59 0,#c8467d 30%,#2a1560 70%,#150d3a);cursor:pointer;text-align:center;padding:20px}
-#start h1{font-size:clamp(48px,11vw,120px);margin:0;font-style:italic;letter-spacing:-.03em;text-shadow:5px 5px 0 var(--hot),10px 10px 0 #5b2a86}
-#start p{margin:22px 0 0;font-size:17px;max-width:42ch}
+#start{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto;background:linear-gradient(180deg,rgba(21,13,58,.45) 0%,rgba(21,13,58,.72) 60%,rgba(21,13,58,.92) 100%)}
+#start .sun{position:absolute;left:50%;top:8%;width:min(46vh,380px);height:min(46vh,380px);transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,#ffe0a0 0%,#ff9a5a 45%,#ff5a7a88 62%,transparent 70%);filter:saturate(1.2);pointer-events:none}
+#start .grid{position:absolute;inset:auto 0 0 0;height:38%;background:linear-gradient(transparent,#27e6ff22 1px,transparent 1px),linear-gradient(90deg,#27e6ff22 1px,transparent 1px);background-size:44px 22px;transform:perspective(400px) rotateX(62deg);transform-origin:bottom;opacity:.5;pointer-events:none}
+#start .menu{position:relative;width:min(880px,94vw);max-height:92vh;overflow:auto;background:rgba(21,13,58,.82);border:1px solid #ffffff2e;border-radius:18px;padding:22px 22px 18px;box-shadow:0 20px 80px #000a;text-align:center;backdrop-filter:blur(6px)}
+#start h1{font-size:clamp(44px,9vw,96px);margin:0;font-style:italic;letter-spacing:-.03em;text-shadow:4px 4px 0 var(--hot),8px 8px 0 #5b2a86}
+#start .tag{margin:6px 0 0;color:#ffd24a;font-weight:700;letter-spacing:2px}
+#start .desc{margin:10px auto 0;font-size:15px;max-width:62ch;opacity:.92}
+#start .stats{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:14px 0 0}
+#start .chip{background:#ffffff14;border:1px solid #ffffff26;border-radius:999px;padding:5px 12px;font-size:13px}
+#start .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;text-align:left}
+@media(max-width:640px){#start .cols{grid-template-columns:1fr}}
+#start .card{background:#ffffff0d;border:1px solid #ffffff1f;border-radius:12px;padding:12px}
+#start .card h3{margin:0 0 8px;font-size:14px;color:var(--cyan);letter-spacing:1px;text-transform:uppercase}
+#start .sws{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+#start .sw{border:2px solid transparent;border-radius:10px;padding:8px;cursor:pointer;background:#ffffff10;color:var(--ink);font:inherit;font-size:13px}
+#start .sw.on{border-color:var(--hot)}
+#start .sw .dot{display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:6px;vertical-align:-2px}
+#start .opt{display:flex;gap:6px;flex-wrap:wrap}
+#start .opt button{background:#ffffff10;border:1px solid #ffffff26;color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer;font:inherit;font-size:13px}
+#start .opt button.on{background:var(--hot);border-color:var(--hot);font-weight:700}
+#start .feat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;font-size:13px;text-align:left}
+@media(max-width:640px){#start .feat{grid-template-columns:1fr}}
+#start .feat div{background:#ffffff0a;border:1px solid #ffffff17;border-radius:10px;padding:8px 10px}
+#play{margin-top:16px;font-size:20px;font-weight:800;font-style:italic;background:linear-gradient(90deg,#ff5a7a,#ff8a3a);border:0;color:#fff;border-radius:12px;padding:12px 46px;cursor:pointer;box-shadow:0 8px 30px #ff5a7a66}
+#play:hover{filter:brightness(1.1)}
+#start .controls{font-size:12.5px;opacity:.8;margin:12px auto 0;max-width:64ch}
 </style></head><body>
 <canvas id="c"></canvas>
 <div class="p" id="top"><b id="dist">Centro</b><br>Dinero <span id="money">$0</span><div id="hpb"><div id="hp"></div></div><div id="armb"><div id="arm"></div></div><span id="st"></span></div>
@@ -39,12 +62,21 @@ html,body{height:100%;margin:0;background:#150d3a;overflow:hidden;color:var(--in
 <div class="p" id="hint"></div><div class="p" id="cross"></div>
 <div class="p" id="help">WASD mover · Ratón/flechas cámara · Shift correr<br>Clic/J atacar · 1-4 armas · I inventario<br>E interactuar/atraco/saludar · B tienda o concesionario · H botiquín<br>F coche · Espacio freno · Verde=tienda Naranja=coches</div>
 <div class="p" id="toast"></div><div class="p" id="inv"></div>
-<div id="start"><h1>Neon Coast</h1><p>Ciudad costera abierta. Baja del coche, recorre las calles, ataca y atraca tiendas, y huye de la policía.</p><p>Haz clic para empezar</p></div>
+<div id="start"><div class="sun"></div><div class="grid"></div><div class="menu">
+<h1>Neon Coast</h1><p class="tag">ATARDECER · DELITO · VELOCIDAD</p>
+<p class="desc">Ciudad costera abierta en 3D: recorre las calles a pie o en coche, atraca tiendas, compra armas y tunea tu máquina en el concesionario, completa 13 misiones y escapa de la policía de 5 estrellas.</p>
+<div class="stats"><span class="chip">13 misiones historia + libres</span><span class="chip">12 tiendas · 5 tipos</span><span class="chip">3 concesionarios AutoCosta</span><span class="chip">4 armas · turbo y blindaje</span></div>
+<div class="cols"><div class="card"><h3>1 · Elige personaje</h3><div class="sws" id="chsw"></div><p id="chname" style="margin:8px 0 0;font-size:13px;opacity:.85"></p></div>
+<div class="card"><h3>2 · Configuración</h3><p style="margin:0 0 6px;font-size:13px">Calidad gráfica</p><div class="opt" id="qopt"></div><p style="margin:10px 0 6px;font-size:13px">Sombras</p><div class="opt" id="shopt"></div><p style="margin:10px 0 6px;font-size:13px">Sensibilidad ratón</p><div class="opt" id="sopt"></div></div></div>
+<div class="feat"><div><b>Atracos</b><br>Equipa arma (1-4), pulsa E junto al dependiente y no te alejes.</div><div><b>Tiendas</b><br>Verde en minimapa. Cada una tiene stock y precios distintos. B para comprar.</div><div><b>Coches</b><br>Naranja en minimapa. Pintura, blindaje, motor y turbo. F subir/bajar.</div></div>
+<button id="play">▶ JUGAR</button>
+<p class="controls">WASD mover · Ratón/flechas cámara · Shift correr · Clic/J atacar · 1-4 armas · I inventario · E interactuar · B tienda/concesionario · H botiquín · F coche · Espacio freno</p>
+</div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const $=id=>document.getElementById(id),rnd=(a,b)=>a+Math.random()*(b-a),PI=Math.PI,pick=a=>a[Math.random()*a.length|0];
 const CELL=76,R=16,B=60,H=4,EXT=H*CELL+CELL/2,DX=[1,0,-1,0],DZ=[0,1,0,-1];
-let pr=Math.min(devicePixelRatio,1.25),running=false,frame=0,shake=0,speed=0,money=0;
+let pr=Math.min(devicePixelRatio,1.25),running=false,frame=0,shake=0,speed=0,money=0,camSens=1;
 const cn=$('c'),rd=new THREE.WebGLRenderer({canvas:cn,antialias:true,powerPreference:'high-performance'});
 rd.setPixelRatio(pr);rd.outputEncoding=THREE.sRGBEncoding;rd.toneMapping=THREE.ACESFilmicToneMapping;rd.toneMappingExposure=1.15;
 rd.shadowMap.enabled=true;rd.shadowMap.type=THREE.PCFShadowMap;rd.shadowMap.autoUpdate=false;
@@ -321,7 +353,7 @@ addEventListener('keydown',e=>{keys[e.code]=1;if(/Arrow|Space|Tab/.test(e.code))
   if(c=='KeyF')toggleCar();else if(c=='KeyE')interact();else if(c=='KeyB'){const cs=nearCarShop(),s2=nearShop();if(cs){inv.open=true;inv.tab=4;if(document.exitPointerLock)document.exitPointerLock();showInv()}else if(s2){inv.open=true;inv.tab=3;if(document.exitPointerLock)document.exitPointerLock();showInv()}}else if(c=='KeyH')heal();else if(c=='KeyJ')fire();else if(/^Digit[1-4]$/.test(c))selW(+c[5]-1)});
 addEventListener('keyup',e=>keys[e.code]=0);
 addEventListener('mousedown',()=>{if(!running||inv.open)return;keys.Mouse=1;if(document.pointerLockElement===cn)fire();else if(cn.requestPointerLock)cn.requestPointerLock()});addEventListener('mouseup',()=>keys.Mouse=0);addEventListener('blur',()=>{for(const k in keys)keys[k]=0});
-addEventListener('mousemove',e=>{if(document.pointerLockElement===cn&&P.foot){cam.yaw-=e.movementX*.0025;cam.pitch=Math.max(-.15,Math.min(.9,cam.pitch+e.movementY*.002))}});
+addEventListener('mousemove',e=>{if(document.pointerLockElement===cn&&P.foot){cam.yaw-=e.movementX*.0025*camSens;cam.pitch=Math.max(-.15,Math.min(.9,cam.pitch+e.movementY*.002))}});
 // Colisiones
 function collide(o,rad){for(const b of boxes){const dx=o.x-b.x,dz=o.z-b.z;if(Math.abs(dx)>b.hw+rad+1||Math.abs(dz)>b.hd+rad+1)continue;
   let nx=dx-Math.max(-b.hw,Math.min(b.hw,dx)),nz=dz-Math.max(-b.hd,Math.min(b.hd,dz)),d=Math.hypot(nx,nz);
@@ -434,7 +466,18 @@ function mini(px,pz,th){const s=.5,c=Math.cos(th),n=Math.sin(th);mg.setTransform
 function rs(){rd.setPixelRatio(pr);rd.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}
 addEventListener('resize',rs);rs();
 let acc=0,fc=0,last=performance.now();
-$('start').onclick=()=>{$('start').style.display='none';running=true;applyW();if(cn.requestPointerLock)cn.requestPointerLock();setTimeout(()=>$('help').style.opacity=.15,14000)};
+const CHARS=[{n:'Neon Rosa',sh:0xff5a7a,pa:0x223355,ha:0x2a1d14},{n:'Surf Cyan',sh:0x27e6ff,pa:0x113344,ha:0x6b4a32},{n:'Oro Costa',sh:0xffd24a,pa:0x4a3322,ha:0xe0c070},{n:'Sombra Violeta',sh:0x8a5cff,pa:0x1a1a2e,ha:0x111111},{n:'Palmera',sh:0x2ee08a,pa:0x223322,ha:0x2a1d14},{n:'Asfalto',sh:0xe03030,pa:0x111111,ha:0x6b4a32}];
+let CFG={ch:0,q:'alta',sh:1,sens:1};try{Object.assign(CFG,JSON.parse(localStorage.getItem('neonCoastCfg')||'{}'))}catch(e){}
+function saveCfg(){try{localStorage.setItem('neonCoastCfg',JSON.stringify(CFG))}catch(e){}}
+function setPlayerLook(sh,pa,ha){try{scene.remove(P.h.g)}catch(e){}const ng=mkHuman(sh,pa,ha);ng.g.visible=false;ng.g.traverse(o=>o.castShadow=true);GUN.forEach(g=>{if(g){try{g.parent.remove(g)}catch(e){}ng.aR.add(g)}});P.h=ng;applyW()}
+function drawMenu(){const cw=$('chsw');cw.innerHTML=CHARS.map((c,i)=>`<button class="sw${i==CFG.ch?' on':''}" onclick="pickChar(${i})"><span class="dot" style="background:#${c.sh.toString(16).padStart(6,'0')}"></span>${c.n}</button>`).join('');$('chname').textContent='Seleccionado: '+CHARS[CFG.ch].n;
+ $('qopt').innerHTML=['alta','media','baja'].map(q=>`<button class="${q==CFG.q?'on':''}" onclick="pickQ('${q}')">${q}</button>`).join('');
+ $('shopt').innerHTML=[1,0].map(v=>`<button class="${v==CFG.sh?'on':''}" onclick="pickSh(${v})">${v?'Sí':'No'}</button>`).join('');
+ $('sopt').innerHTML=[0.5,1,2].map(v=>`<button class="${v==CFG.sens?'on':''}" onclick="pickS(${v})">${v}x</button>`).join('')}
+function pickChar(i){CFG.ch=i;saveCfg();drawMenu()}function pickQ(q){CFG.q=q;saveCfg();drawMenu()}function pickSh(v){CFG.sh=v;saveCfg();drawMenu()}function pickS(v){CFG.sens=v;saveCfg();drawMenu()}
+function applyCfg(){pr=CFG.q=='alta'?Math.min(devicePixelRatio,1.25):CFG.q=='media'?1:.7;rd.setPixelRatio(pr);rd.shadowMap.enabled=!!CFG.sh;camSens=CFG.sens;const c=CHARS[CFG.ch]||CHARS[0];setPlayerLook(c.sh,c.pa,c.ha);rs()}
+drawMenu();
+$('play').onclick=()=>{applyCfg();$('start').style.display='none';running=true;applyW();if(cn.requestPointerLock)cn.requestPointerLock();setTimeout(()=>$('help').style.opacity=.15,14000)};
 
 function loop(t){requestAnimationFrame(loop);const dt=Math.min(.05,(t-last)/1000);last=t;
   if(running){step(dt);acc+=dt;if(++fc==90){const a=acc/fc;if(a>.03&&pr>.6){pr-=.2;rs()}else if(a<.0175&&pr<1.25){pr=Math.min(1.25,pr+.15);rs()}acc=fc=0}}
