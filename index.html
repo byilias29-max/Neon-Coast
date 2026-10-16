@@ -50,41 +50,46 @@ html,body{height:100%;margin:0;background:#150d3a;overflow:hidden;color:var(--in
 #inv button{background:none;border:0;color:var(--ink);font:inherit;padding:6px 14px;border-bottom:2px solid transparent;cursor:pointer}
 #inv button.on{border-color:var(--hot);font-weight:700}
 .row{padding:8px 4px;border-bottom:1px solid #fff2;cursor:pointer}.row i{float:right;opacity:.7}
-#start{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto;background:linear-gradient(180deg,rgba(21,13,58,.45) 0%,rgba(21,13,58,.72) 60%,rgba(21,13,58,.92) 100%)}
-#start .sun{position:absolute;left:50%;top:8%;width:min(46vh,380px);height:min(46vh,380px);transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,#ffe0a0 0%,#ff9a5a 45%,#ff5a7a88 62%,transparent 70%);filter:saturate(1.2);pointer-events:none}
-#start .grid{position:absolute;inset:auto 0 0 0;height:38%;background:linear-gradient(transparent,#27e6ff22 1px,transparent 1px),linear-gradient(90deg,#27e6ff22 1px,transparent 1px);background-size:44px 22px;transform:perspective(400px) rotateX(62deg);transform-origin:bottom;opacity:.5;pointer-events:none}
-#start .menu{position:relative;width:min(880px,94vw);max-height:92vh;overflow:auto;background:rgba(21,13,58,.82);border:1px solid #ffffff2e;border-radius:18px;padding:22px 22px 18px;box-shadow:0 20px 80px #000a;text-align:center;backdrop-filter:blur(6px)}
-#start h1{font-size:clamp(44px,9vw,96px);margin:0;font-style:italic;letter-spacing:-.03em;text-shadow:4px 4px 0 var(--hot),8px 8px 0 #5b2a86}
-#start .tag{margin:6px 0 0;color:#ffd24a;font-weight:700;letter-spacing:2px}
-#start .desc{margin:10px auto 0;font-size:15px;max-width:62ch;opacity:.92}
+#start{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:22px;overflow:auto;background:linear-gradient(180deg,rgba(21,13,58,.55) 0%,rgba(21,13,58,.78) 55%,rgba(21,13,58,.95) 100%)}
+#start .sun{position:absolute;left:50%;top:6%;width:min(44vh,360px);height:min(44vh,360px);transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,#ffe0a0 0%,#ff9a5a 42%,#ff5a7a55 60%,transparent 68%);filter:saturate(1.25) blur(2px);pointer-events:none}
+#start .grid{position:absolute;inset:auto 0 0 0;height:34%;background:linear-gradient(transparent,#27e6ff22 1px,transparent 1px),linear-gradient(90deg,#27e6ff22 1px,transparent 1px);background-size:48px 20px;transform:perspective(430px) rotateX(64deg);transform-origin:bottom;opacity:.45;pointer-events:none}
+#start .menu{position:relative;width:min(980px,94vw);max-height:94vh;overflow:auto;background:linear-gradient(180deg,#1c0f4ecc,#130a33d9);border:1px solid #ffffff24;border-radius:22px;padding:24px 26px 20px;box-shadow:0 24px 80px #000b;text-align:center;backdrop-filter:blur(12px)}
+#start h1{font-size:clamp(46px,8vw,88px);margin:0;font-style:italic;letter-spacing:-.03em;background:linear-gradient(180deg,#fff9f0 0%,#ffa9bd 62%,#ff5a7a 100%);-webkit-background-clip:text;color:transparent;text-shadow:0 20px 50px #ff5a7a4d}
+#start .tag{margin:5px 0 0;color:#ffd24a;font-weight:800;letter-spacing:3px;font-size:13px}
+#start .desc{margin:12px auto 0;font-size:15px;line-height:1.65;max-width:66ch;color:#ffffffd9}
 #start .stats{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:14px 0 0}
-#start .chip{background:#ffffff14;border:1px solid #ffffff26;border-radius:999px;padding:5px 12px;font-size:13px}
-#start .cols{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:14px;margin-top:14px;text-align:left}
-#start .pvrow{display:flex;gap:10px;align-items:center}
-#start canvas#chprev{width:96px;height:128px;border-radius:10px;background:linear-gradient(180deg,#2a1560,#150d3a);border:1px solid #ffffff26}
-#start .cust{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}
-#start .cust label{font-size:12px;opacity:.9;display:flex;flex-direction:column;gap:4px}
-#start input[type=color]{width:100%;height:34px;border:0;border-radius:8px;background:none;padding:0;cursor:pointer}
-#start input[type=range]{width:100%;accent-color:#ff5a7a}
-#start .rowline{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;margin:8px 0 2px}
-#start .rowline output{opacity:.85;min-width:44px;text-align:right}
-#start .mini{font-size:12px;opacity:.75;margin:2px 0 0}
-@media(max-width:900px){#start .cols{grid-template-columns:1fr 1fr}}@media(max-width:640px){#start .cols{grid-template-columns:1fr}}
-#start .card{background:#ffffff0d;border:1px solid #ffffff1f;border-radius:12px;padding:12px}
-#start .card h3{margin:0 0 8px;font-size:14px;color:var(--cyan);letter-spacing:1px;text-transform:uppercase}
-#start .sws{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-#start .sw{border:2px solid transparent;border-radius:10px;padding:8px;cursor:pointer;background:#ffffff10;color:var(--ink);font:inherit;font-size:13px}
-#start .sw.on{border-color:var(--hot)}
-#start .sw .dot{display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:6px;vertical-align:-2px}
+#start .chip{background:#ffffff0f;border:1px solid #ffffff26;border-radius:999px;padding:6px 12px;font-size:12.5px;color:#fff}
+#start .cols{display:grid;grid-template-columns:1.05fr 1fr 1fr;gap:16px;margin-top:18px;text-align:left}
+#start .pvrow{display:flex;gap:12px;align-items:flex-start}
+#start canvas#chprev{width:112px;height:146px;border-radius:14px;background:linear-gradient(180deg,#2a1560,#150d3a);border:1px solid #ffffff2b;box-shadow:0 10px 30px #0005,inset 0 0 16px #27e6ff14}
+#start .cust{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px}
+#start .cust label{font-size:12px;color:#ffffffcc;display:flex;flex-direction:column;gap:5px;font-weight:600;white-space:nowrap}
+#start input[type=color]{width:100%;height:32px;border:0;border-radius:9px;background:#ffffff12;padding:0;cursor:pointer;box-shadow:inset 0 0 0 2px #fff1a}
+#start input[type=range]{appearance:none;-webkit-appearance:none;width:100%;height:8px;border-radius:999px;background:linear-gradient(90deg,#ff5a7a var(--val,50%),#ffffff22 var(--val,50%));outline:0;cursor:pointer;box-shadow:inset 0 0 0 1px #ffffff14}
+#start input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff7ea;border:3px solid #ff5a7a;box-shadow:0 4px 16px #ff5a7a66;cursor:pointer}
+#start input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff7ea;border:3px solid #ff5a7a;box-shadow:0 4px 16px #ff5a7a66;cursor:pointer;border:0}
+#start .rowline{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:#ffffffdd;margin:14px 0 6px;font-weight:600}
+#start .rowline output{opacity:.9;min-width:46px;text-align:right;font-variant-numeric:tabular-nums}
+#start .mini{font-size:11.5px;color:#ffffff80;margin:5px 0 0}
+@media(max-width:940px){#start .cols{grid-template-columns:1fr 1fr}}@media(max-width:660px){#start .cols{grid-template-columns:1fr}}
+#start .card{background:#ffffff0c;border:1px solid #ffffff1d;border-radius:16px;padding:14px 14px 12px;box-shadow:0 10px 30px #0002}
+#start .card h3{margin:0 0 10px;font-size:13px;color:#7ff6ff;letter-spacing:1.2px;text-transform:uppercase;font-weight:700}
+#start .card h3::after{content:'';display:block;height:2px;border-radius:999px;background:linear-gradient(90deg,#27e6ff66,transparent);margin-top:5px}
+#start .sws{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+#start .sw{border:1px solid #ffffff1d;border-radius:11px;padding:9px 10px;cursor:pointer;background:#ffffff0d;color:#fff;font:inherit;font-size:13px;text-align:left;display:flex;align-items:center;gap:8px;transition:border-color .2s,background-color .2s}
+#start .sw:hover{border-color:#27e6ff66}
+#start .sw.on{border-color:var(--hot);background:#ff5a7a1f}
+#start .sw .dot{display:inline-block;width:13px;height:13px;border-radius:50%;flex:0 0 auto}
 #start .opt{display:flex;gap:6px;flex-wrap:wrap}
-#start .opt button{background:#ffffff10;border:1px solid #ffffff26;color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer;font:inherit;font-size:13px}
-#start .opt button.on{background:var(--hot);border-color:var(--hot);font-weight:700}
-#start .feat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;font-size:13px;text-align:left}
-@media(max-width:640px){#start .feat{grid-template-columns:1fr}}
-#start .feat div{background:#ffffff0a;border:1px solid #ffffff17;border-radius:10px;padding:8px 10px}
-#play{margin-top:16px;font-size:20px;font-weight:800;font-style:italic;background:linear-gradient(90deg,#ff5a7a,#ff8a3a);border:0;color:#fff;border-radius:12px;padding:12px 46px;cursor:pointer;box-shadow:0 8px 30px #ff5a7a66}
-#play:hover{filter:brightness(1.1)}
-#start .controls{font-size:12.5px;opacity:.8;margin:12px auto 0;max-width:64ch}
+#start .opt button{background:#ffffff0f;border:1px solid #ffffff1d;color:#f3f0ff;border-radius:9px;padding:7px 11px;cursor:pointer;font:inherit;font-size:12.8px;line-height:1;transition:border-color .2s,background-color .2s,box-shadow .2s}
+#start .opt button:hover{border-color:#27e6ff55}
+#start .opt button.on{background:linear-gradient(90deg,#ff5a7a,#ff8a3a);border-color:transparent;color:#fff;font-weight:800;box-shadow:0 8px 24px #ff5a7a40}
+#start .feat{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px;font-size:13px;text-align:left;color:#fff}
+@media(max-width:660px){#start .feat{grid-template-columns:1fr}}
+#start .feat div{background:#ffffff0a;border:1px solid #ffffff18;border-radius:12px;padding:10px 11px;line-height:1.5}
+#play{margin-top:18px;font-size:19px;font-weight:900;font-style:italic;background:linear-gradient(90deg,#ff5a7a,#ff8a3a);border:0;color:#fff;border-radius:14px;padding:13px 54px;cursor:pointer;box-shadow:0 12px 34px #ff5a7a4d;transition:filter .2s,box-shadow .2s,transform .2s}
+#play:hover{filter:brightness(1.08);box-shadow:0 14px 40px #ff8a3a66;transform:translateY(-1px)}
+#start .controls{font-size:12.5px;color:#ffffffa6;margin:14px auto 0;max-width:88ch;line-height:1.6}
 #dmg{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(255,20,40,.55) 100%)}
 #zone{position:absolute;left:50%;top:16%;transform:translateX(-50%);font-size:34px;font-weight:800;letter-spacing:8px;color:#fff7ea;text-shadow:0 0 18px #27e6ff;opacity:0;transition:opacity .5s;pointer-events:none;white-space:nowrap}
 #wasted{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .6s}
@@ -114,7 +119,7 @@ html,body{height:100%;margin:0;background:#150d3a;overflow:hidden;color:var(--in
 <p class="desc">Ciudad costera abierta en 3D: recorre las calles a pie o en coche, atraca tiendas, compra armas y tunea tu máquina en el concesionario, completa 13 misiones y escapa de la policía de 5 estrellas.</p>
 <div class="stats"><span class="chip">13 misiones historia + libres</span><span class="chip">12 tiendas · 5 tipos</span><span class="chip">3 concesionarios AutoCosta</span><span class="chip">4 armas · turbo y blindaje</span><span class="chip">parque · semáforos · club</span></div>
 <div class="cols"><div class="card"><h3>1 · Personaje</h3><div class="pvrow"><canvas id="chprev" width="96" height="128"></canvas><div><div class="sws" id="chsw" style="grid-template-columns:1fr 1fr"></div><p id="chname" style="margin:8px 0 0;font-size:13px;opacity:.85"></p></div></div><div class="cust"><label>Camisa<input type="color" id="cSh" oninput="pickCustom()"></label><label>Pantalón<input type="color" id="cPa" oninput="pickCustom()"></label><label>Pelo<input type="color" id="cHa" oninput="pickCustom()"></label></div><p class="mini">Toca un preset o personaliza los 3 colores. Verás la previsualización.</p></div>
-<div class="card"><h3>2 · Gráficos</h3><p style="margin:0 0 6px;font-size:13px">Preset calidad</p><div class="opt" id="qopt"></div><div class="rowline"><span>Resolución</span><output id="oRes"></output></div><input type="range" id="rRes" min="0.5" max="1.25" step="0.05" oninput="pickRes(this.value)"><p class="mini">0 = auto según preset</p><div class="rowline"><span>Res. personalizada</span><output id="oRes2"></output></div><div class="opt" id="resopt"></div><p style="margin:10px 0 6px;font-size:13px">Sombras</p><div class="opt" id="shopt"></div><p style="margin:10px 0 6px;font-size:13px">Resolución sombras</p><div class="opt" id="shres"></div><p style="margin:10px 0 6px;font-size:13px">Niebla</p><div class="opt" id="fogopt"></div><div class="rowline"><span>Brillo / exposición</span><output id="oExpo"></output></div><input type="range" id="rExpo" min="0.8" max="1.5" step="0.05" oninput="pickExpo(this.value)"><p style="margin:10px 0 6px;font-size:13px">Tráfico</p><div class="opt" id="traopt"></div><p style="margin:10px 0 6px;font-size:13px">Peatones</p><div class="opt" id="pedopt"></div></div>
+<div class="card"><h3>2 · Gráficos</h3><p style="margin:0 0 6px;font-size:13px">Preset calidad</p><div class="opt" id="qopt"></div><div class="rowline"><span>Resolución</span><output id="oRes2"></output></div><div class="opt" id="resopt"></div><div class="opt" id="resopt"></div><p style="margin:10px 0 6px;font-size:13px">Sombras</p><div class="opt" id="shopt"></div><p style="margin:10px 0 6px;font-size:13px">Resolución sombras</p><div class="opt" id="shres"></div><p style="margin:10px 0 6px;font-size:13px">Niebla</p><div class="opt" id="fogopt"></div><div class="rowline"><span>Brillo / exposición</span><output id="oExpo"></output></div><input type="range" id="rExpo" min="0.8" max="1.5" step="0.05" oninput="pickExpo(this.value)"><p style="margin:10px 0 6px;font-size:13px">Tráfico</p><div class="opt" id="traopt"></div><p style="margin:10px 0 6px;font-size:13px">Peatones</p><div class="opt" id="pedopt"></div></div>
 <div class="card"><h3>3 · Cámara y control</h3><div class="rowline"><span>Sensibilidad</span><output id="oSens"></output></div><input type="range" id="rSens" min="0.1" max="3" step="0.1" oninput="pickS(parseFloat(this.value))"><div class="opt" id="sopt"></div><p style="margin:10px 0 6px;font-size:13px">Invertir eje Y</p><div class="opt" id="invopt"></div><p style="margin:10px 0 6px;font-size:13px">Sonido</p><div class="opt" id="sndopt"></div><div class="rowline"><span>Campo visión (FOV)</span><output id="oFov"></output></div><input type="range" id="rFov" min="55" max="78" step="1" oninput="pickFov(parseInt(this.value))"><p class="mini">A pie y en coche. Mayor FOV = más velocidad aparente.</p></div></div>
 <div class="feat"><div><b>Atracos</b><br>Equipa arma (1-4), pulsa E junto al dependiente y no te alejes.</div><div><b>Tiendas</b><br>Verde en minimapa. Cada una tiene stock y precios distintos. B para comprar.</div><div><b>Coches</b><br>Naranja en minimapa. Pintura, blindaje, motor y turbo. F subir/bajar.</div></div>
 <div id="secchip" style="display:none;margin-top:10px;font-size:13px;color:#ffd24a">★ MIEMBRO NIVEL 7 — sala desbloqueada (Konami)</div><button id="play">▶ JUGAR</button>
@@ -286,7 +291,6 @@ function mkHotel(x,z,n){const w=26,d=16,fz=z+d/2,E=(g,m,y,zz)=>{const o=new THRE
 mkHotel(EXT+16,-60,'HOTEL MIRAMAR');mkHotel(EXT+16,120,'HOTEL BRISA');
 const acts={goles:0,botellas:0,graf:0,taxis:0,dineroTaxi:0};
 const bottles=[],grafs=[],bars=[];
-P.drunk=0;P.spray=0;
 function barTex(){const c=cv(128,40),x=c.getContext('2d');x.fillStyle='#10131f';x.fillRect(0,0,128,40);x.fillStyle='#ffd24a';x.font='bold 26px sans-serif';x.textAlign='center';x.fillText('BAR',64,29);return tex(c)}
 function mkBar(x,z){const E=(g,m,y,zz)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(...g),m);o.position.set(x,y,zz);scene.add(o);return o};
  E([7,3.4,5],new THREE.MeshStandardMaterial({color:0x5a2a3a,roughness:.8}),2,z);E([7.4,.4,5.4],new THREE.MeshStandardMaterial({color:0x222633}),3.9,z);
@@ -433,7 +437,7 @@ for(let i=0;i<18;i++){const c={g:{position:new THREE.Vector3(),rotation:{y:0},vi
 // Jugador, armas, NPCs, policia
 const W=[{n:'Puños',r:1.7,s:1,cd:.45,mel:1},{n:'Bate',r:2.4,s:1.3,cd:.6,mel:1},{n:'Pistola',r:55,s:.8,cd:.3,am:1},{n:'Escopeta',r:24,s:2.2,cd:.9,am:1}];
 const P={x:4,z:-30,th:0,vx:0,vz:0,foot:false,fx:0,fz:0,fth:0,fvx:0,fvz:0,hp:100,wanted:0,wt:0,w:2,own:[1,1,1,0],ammo:[0,0,24,0],med:2,rob:0,cd:0,fl:0,tr:0,anim:0,known:[],chp:100,arm:0,eng:0,apt:0,inc:20,gy:0,cgy:0,kills:0,carm:0,turbo:0,vy:0,fy:0,rel:0},cam={yaw:0,pitch:.3},keys={},inv={open:false,tab:0};
-P.h=mkHuman(0xff5a7a,0x223355);P.h.g.visible=false;P.h.g.traverse(o=>o.castShadow=true);P.mag={2:12,3:6};P.magSize={2:12,3:6};P.life={rob:0,kills:0,maxW:0};
+P.h=mkHuman(0xff5a7a,0x223355);P.h.g.visible=false;P.h.g.traverse(o=>o.castShadow=true);P.mag={2:12,3:6};P.magSize={2:12,3:6};P.life={rob:0,kills:0,maxW:0};P.drunk=0;P.spray=0;
 const GUN=[null,new THREE.CylinderGeometry(.04,.05,.9).translate(0,-.75,0),new THREE.BoxGeometry(.07,.3,.1).translate(0,-.72,0),new THREE.BoxGeometry(.09,.85,.1).translate(0,-.85,0)].map(g=>{if(!g)return null;const m=new THREE.Mesh(g,hm(0x222222));m.visible=false;P.h.aR.add(m);return m});
 const trc=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]),new THREE.LineBasicMaterial({color:0xffe08a}));trc.frustumCulled=false;trc.visible=false;scene.add(trc);
 const NAMES=['Marta','Dani','Lucía','Hugo','Iker','Nuria','Pablo','Sofía','Álex','Carmen','Rubén','Vera','Leo','Inés','Tito','Rosa'],JOBS=['DJ','Camarero','Surfista','Taxista','Chef','Artista','Repartidor','Turista'];
@@ -771,6 +775,7 @@ function saveCfg(){try{localStorage.setItem('neonCoastCfg',JSON.stringify(CFG))}
 function setPlayerLook(sh,pa,ha){try{scene.remove(P.h.g)}catch(e){}const ng=mkHuman(sh,pa,ha);ng.g.visible=false;ng.g.traverse(o=>o.castShadow=true);GUN.forEach(g=>{if(g){try{g.parent.remove(g)}catch(e){}ng.aR.add(g)}});P.h=ng;applyW()}
 const hx=n=>'#'+n.toString(16).padStart(6,'0');
 function curLook(){if(CFG.ch<0&&CFG.custom)return{sh:parseInt(CFG.custom.sh.slice(1),16),pa:parseInt(CFG.custom.pa.slice(1),16),ha:parseInt(CFG.custom.ha.slice(1),16),n:'Personalizado'};const c=CHARS[CFG.ch]||CHARS[0];return{...c}}
+function fillSlider(){['rSens','rFov','rExpo'].forEach(id=>{const el=$(id);if(!el)return;const v=(el.value-el.min)/(el.max-el.min)*100;el.style.setProperty('--val',v+'%')})}
 function drawPreview(){const cv2=$('chprev');if(!cv2)return;const x=cv2.getContext('2d'),L=curLook();x.clearRect(0,0,96,128);const g=x.createLinearGradient(0,0,0,128);g.addColorStop(0,'#2a1560');g.addColorStop(1,'#150d3a');x.fillStyle=g;x.fillRect(0,0,96,128);x.fillStyle='rgba(39,230,255,.15)';x.fillRect(0,104,96,24);
  x.fillStyle=hx(L.pa);x.fillRect(34,78,12,26);x.fillRect(50,78,12,26);x.fillStyle='#1a1a1a';x.fillRect(32,100,16,6);x.fillRect(48,100,16,6);
  x.fillStyle=hx(L.sh);x.fillRect(30,44,36,36);x.fillRect(20,46,10,28);x.fillRect(66,46,10,28);x.fillStyle='#d9a77c';x.fillRect(20,72,10,8);x.fillRect(66,72,8,8);
@@ -778,19 +783,19 @@ function drawPreview(){const cv2=$('chprev');if(!cv2)return;const x=cv2.getConte
  x.fillStyle='#111';x.fillRect(41,30,3,3);x.fillRect(52,30,3,3);x.fillStyle='#ff5a7a';x.font='bold 9px sans-serif';x.textAlign='center';x.fillText(L.n||'',48,120)}
 function drawMenu(){const cw=$('chsw');cw.innerHTML=CHARS.map((c,i)=>`<button class="sw${i==CFG.ch?' on':''}" onclick="pickChar(${i})"><span class="dot" style="background:${hx(c.sh)}"></span>${c.n}</button>`).join('');const L=curLook();$('chname').textContent='Seleccionado: '+(L.n||CHARS[CFG.ch].n);
  if(CFG.ch<0&&CFG.custom){$('cSh').value=CFG.custom.sh;$('cPa').value=CFG.custom.pa;$('cHa').value=CFG.custom.ha}else{$('cSh').value=hx(L.sh);$('cPa').value=hx(L.pa);$('cHa').value=hx(L.ha)}
- $('qopt').innerHTML=['baja','media','alta','custom'].map(q=>`<button class="${q==CFG.q?'on':''}" onclick="pickQ('${q}')">${q=='custom'?'pers.':q}</button>`).join('');
- $('resopt').innerHTML=[0,0.7,1,1.25].map(v=>`<button class="${v==CFG.res?'on':''}" onclick="pickRes(${v})">${v==0?'auto':v}</button>`).join('');$('oRes').textContent=CFG.res==0?'auto':CFG.res;$('oRes2').textContent=CFG.res==0?'auto':CFG.res;
+ $('qopt').innerHTML=['baja','media','alta','ultra','custom'].map(q=>`<button class="${q==CFG.q?'on':''}" onclick="pickQ('${q}')">${q=='custom'?'pers.':q}</button>`).join('');
+ $('resopt').innerHTML=[0,0.7,1,1.25].map(v=>`<button class="${v==CFG.res?'on':''}" onclick="pickRes(${v})">${v==0?'auto':v}</button>`).join('');$('oRes2').textContent=CFG.res==0?'auto':CFG.res;
  $('shopt').innerHTML=[1,0].map(v=>`<button class="${v==CFG.sh?'on':''}" onclick="pickSh(${v})">${v?'Sí':'No'}</button>`).join('');
- $('shres').innerHTML=[512,1024,2048].map(v=>`<button class="${v==CFG.shRes?'on':''}" onclick="pickShRes(${v})">${v}</button>`).join('');
+ $('shres').innerHTML=[512,1024,2048,4096].map(v=>`<button class="${v==CFG.shRes?'on':''}" onclick="pickShRes(${v})">${v}</button>`).join('');
  $('fogopt').innerHTML=[1,0].map(v=>`<button class="${v==CFG.fog?'on':''}" onclick="pickFog(${v})">${v?'Sí':'No'}</button>`).join('');
  $('rExpo').value=CFG.expo;$('oExpo').textContent=CFG.expo.toFixed(2);
- $('traopt').innerHTML=[18,12,6].map(v=>`<button class="${v==CFG.traffic?'on':''}" onclick="pickTraffic(${v})">${v}</button>`).join('');
- $('pedopt').innerHTML=[40,25,12].map(v=>`<button class="${v==CFG.peds?'on':''}" onclick="pickPeds(${v})">${v}</button>`).join('');
+ $('traopt').innerHTML=[24,18,12,6].map(v=>`<button class="${v==CFG.traffic?'on':''}" onclick="pickTraffic(${v})">${v}</button>`).join('');
+ $('pedopt').innerHTML=[60,40,25,12].map(v=>`<button class="${v==CFG.peds?'on':''}" onclick="pickPeds(${v})">${v}</button>`).join('');
  $('rSens').value=CFG.sens;$('oSens').textContent=CFG.sens.toFixed(1)+'x';$('sopt').innerHTML=[0.5,1,1.6,2.4].map(v=>`<button class="${v==CFG.sens?'on':''}" onclick="pickS(${v})">${v}x</button>`).join('');
  $('invopt').innerHTML=[0,1].map(v=>`<button class="${v==CFG.invY?'on':''}" onclick="pickInv(${v})">${v?'Invertido':'Normal'}</button>`).join('');$('sndopt').innerHTML=[1,0].map(v=>`<button class="${v==CFG.snd?'on':''}" onclick="pickSnd(${v})">${v?'Sí':'No'}</button>`).join('');
- $('rFov').value=CFG.fov;$('oFov').textContent=CFG.fov;drawPreview()}
+ $('rFov').value=CFG.fov;$('oFov').textContent=CFG.fov;fillSlider();drawPreview()}
 function pickChar(i){CFG.ch=i;CFG.custom=null;saveCfg();drawMenu()}function pickCustom(){CFG.custom={sh:$('cSh').value,pa:$('cPa').value,ha:$('cHa').value};CFG.ch=-1;saveCfg();drawPreview();drawMenuLight()}function drawMenuLight(){const cw=$('chsw');cw.innerHTML=CHARS.map((c,i)=>`<button class="sw${i==CFG.ch?' on':''}" onclick="pickChar(${i})"><span class="dot" style="background:${hx(c.sh)}"></span>${c.n}</button>`).join('');$('chname').textContent='Seleccionado: Personalizado';drawPreview()}
-function pickQ(q){if(q=='baja')Object.assign(CFG,{q,res:.7,sh:0,shRes:512,fog:0,expo:1,traffic:6,peds:12});else if(q=='media')Object.assign(CFG,{q,res:1,sh:1,shRes:1024,fog:1,expo:1.15,traffic:12,peds:25});else if(q=='alta')Object.assign(CFG,{q,res:0,sh:1,shRes:2048,fog:1,expo:1.25,traffic:18,peds:40});saveCfg();drawMenu()}function pickRes(v){CFG.q='custom';CFG.res=parseFloat(v);saveCfg();drawMenu()}function pickSh(v){CFG.q='custom';CFG.sh=v;saveCfg();drawMenu()}function pickShRes(v){CFG.q='custom';CFG.shRes=v;saveCfg();drawMenu()}function pickFog(v){CFG.q='custom';CFG.fog=v;saveCfg();drawMenu()}function pickExpo(v){CFG.q='custom';CFG.expo=parseFloat(v);saveCfg();drawMenu()}function pickTraffic(v){CFG.q='custom';CFG.traffic=v;saveCfg();drawMenu()}function pickPeds(v){CFG.q='custom';CFG.peds=v;saveCfg();drawMenu()}function pickS(v){CFG.sens=Math.max(.1,Math.min(3,parseFloat(v)||1));if(CFG.q!='custom'){CFG.q='custom'}saveCfg();drawMenu()}function pickInv(v){CFG.invY=v;saveCfg();drawMenu()}function pickSnd(v){CFG.snd=v;saveCfg();drawMenu()}function pickFov(v){CFG.fov=Math.max(55,Math.min(78,parseInt(v)||62));saveCfg();drawMenu()}
+function pickQ(q){if(q=='ultra')Object.assign(CFG,{q,res:1.25,sh:1,shRes:4096,fog:1,expo:1.35,traffic:24,peds:60});else if(q=='baja')Object.assign(CFG,{q,res:.7,sh:0,shRes:512,fog:0,expo:1,traffic:6,peds:12});else if(q=='media')Object.assign(CFG,{q,res:1,sh:1,shRes:1024,fog:1,expo:1.15,traffic:12,peds:25});else if(q=='alta')Object.assign(CFG,{q,res:0,sh:1,shRes:2048,fog:1,expo:1.25,traffic:18,peds:40});saveCfg();drawMenu()}function pickRes(v){CFG.q='custom';CFG.res=parseFloat(v);saveCfg();drawMenu()}function pickSh(v){CFG.q='custom';CFG.sh=v;saveCfg();drawMenu()}function pickShRes(v){CFG.q='custom';CFG.shRes=v;saveCfg();drawMenu()}function pickFog(v){CFG.q='custom';CFG.fog=v;saveCfg();drawMenu()}function pickExpo(v){CFG.q='custom';CFG.expo=parseFloat(v);saveCfg();drawMenu()}function pickTraffic(v){CFG.q='custom';CFG.traffic=v;saveCfg();drawMenu()}function pickPeds(v){CFG.q='custom';CFG.peds=v;saveCfg();drawMenu()}function pickS(v){CFG.sens=Math.max(.1,Math.min(3,parseFloat(v)||1));if(CFG.q!='custom'){CFG.q='custom'}saveCfg();drawMenu()}function pickInv(v){CFG.invY=v;saveCfg();drawMenu()}function pickSnd(v){CFG.snd=v;saveCfg();drawMenu()}function pickFov(v){CFG.fov=Math.max(55,Math.min(78,parseInt(v)||62));saveCfg();drawMenu()}
 function applyCfg(){pr=CFG.res>0?CFG.res:CFG.q=='alta'?Math.min(devicePixelRatio,1.25):CFG.q=='media'?1:.7;rd.setPixelRatio(pr);rd.shadowMap.enabled=!!CFG.sh;try{sunL.shadow.mapSize.set(CFG.shRes,CFG.shRes);if(sunL.shadow.map){sunL.shadow.map.dispose();sunL.shadow.map=null}}catch(e){}scene.fog=CFG.fog?new THREE.Fog(0xff9a7a,70,430):null;rd.toneMappingExposure=CFG.expo;camSens=CFG.sens;camInvY=CFG.invY?-1:1;window.SND=!!CFG.snd;ai.forEach((c,i)=>c.off=i>=(CFG.traffic||18));npcs.forEach((n,i)=>{n.off=i>=(CFG.peds||40);if(n.off)n.h.g.visible=false});const L=curLook();setPlayerLook(L.sh,L.pa,L.ha);rs()}
 drawMenu();try{if(isSecret())$('secchip').style.display='block'}catch(e){}
 $('play').onclick=()=>{applyCfg();started=true;paused=false;try{if(!localStorage.getItem('ncPlayed')){localStorage.setItem('ncPlayed','1');setTimeout(()=>toast('WASD moverse · F entrar al coche'),1200);setTimeout(()=>toast('Sigue el faro azul: es tu misión'),5200);setTimeout(()=>toast('E atracar/saludar · B comprar · T taxi'),9200)}}catch(e){}$('start').style.display='none';running=true;applyW();if(cn.requestPointerLock)cn.requestPointerLock();setTimeout(()=>$('help').style.opacity=.15,14000)};
