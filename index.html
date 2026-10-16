@@ -99,7 +99,7 @@ html,body{height:100%;margin:0;background:#150d3a;overflow:hidden;color:var(--in
 #pop{position:absolute;left:50%;top:58%;transform:translateX(-50%);font-size:18px;font-weight:800;color:#ffd24a;text-shadow:1px 1px 0 #000;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
 </style></head><body>
 <canvas id="c"></canvas>
-<div class="p" id="top"><b id="dist">Centro</b><br>Dinero <span id="money">$0</span><div id="hpb"><div id="hp"></div></div><div id="armb"><div id="arm"></div></div><span id="st"></span></div>
+<div class="p" id="top"><b id="dist">Centro</b><span id="wx" style="font-size:12px;opacity:.85"></span><br><br>Dinero <span id="money">$0</span><div id="hpb"><div id="hp"></div></div><div id="armb"><div id="arm"></div></div><span id="st"></span></div>
 <div class="p" id="comp"><canvas id="cmp" width="320" height="34"></canvas></div><div class="p" id="obj">Objetivo</div><div class="p" id="mis"></div>
 <div class="p" id="mmw"><canvas id="mm" width="150" height="150"></canvas></div><div class="p" id="wp"></div>
 <div id="secret"><div class="term"><h2>SALA DE DESARROLLO <span class="lvl">// NIVEL 7</span></h2><p class="praise">Enhorabuena, insider. Menos del 1% de jugadores encuentra esta sala: o eres muy listo o muy curioso. Ambas valen.<br>Como miembro de nivel 7, aquí tienes el archivo completo de trucos, incluidos <b>2 clasificados</b> que no existen en ningún otro sitio.</p><table id="seclist"></table><p class="praise" id="secbadge"></p><button onclick="closeSecret()">Volver al juego</button></div></div>
@@ -144,6 +144,30 @@ const sunDir=new THREE.Vector3(-.62,.3,-.72).normalize(),skyG=new THREE.Group();
 skyG.add(new THREE.Mesh(new THREE.SphereGeometry(450,24,12),new THREE.MeshBasicMaterial({map:tex(sc),side:THREE.BackSide,fog:false,depthWrite:false})));
 const sun=new THREE.Mesh(new THREE.CircleGeometry(33,32),new THREE.MeshBasicMaterial({color:0xffe0a0,fog:false}));
 sun.position.copy(sunDir).multiplyScalar(420);sun.lookAt(0,0,0);skyG.add(sun);scene.add(skyG);
+const WX={t:.68,wx:'sol',wt:rnd(300,500),snowMul:1,lastPhase:'tarde'};
+const SKY=[{t:0,top:'#050514',mid:'#0a0a28',bot:'#1a1a3a',fog:'#0a0a20',sun:'#223',sunI:0,amb:.25,sunC:0x8899ff},
+ {t:.2,top:'#2a3a6a',mid:'#c46a8a',bot:'#ffb37a',fog:'#c48a7a',sun:'#ffe0b0',sunI:1.2,amb:.5,sunC:0xffc890},
+ {t:.35,top:'#2a7ac4',mid:'#7ac4e8',bot:'#cfeaf2',fog:'#9ac4d4',sun:'#fff8e8',sunI:2.6,amb:.75,sunC:0xfff4e0},
+ {t:.6,top:'#2a7ac4',mid:'#7ac4e8',bot:'#cfeaf2',fog:'#9ac4d4',sun:'#fff8e8',sunI:2.6,amb:.75,sunC:0xfff4e0},
+ {t:.72,top:'#150d3a',mid:'#4a2a8a',bot:'#ff9a7a',fog:'#ff9a7a',sun:'#ffe0a0',sunI:2.4,amb:.7,sunC:0xffa86a},
+ {t:.82,top:'#050514',mid:'#0a0a28',bot:'#1a1a3a',fog:'#0a0a20',sun:'#223',sunI:0,amb:.25,sunC:0x8899ff},{t:1,top:'#050514',mid:'#0a0a28',bot:'#1a1a3a',fog:'#0a0a20',sun:'#223',sunI:0,amb:.25,sunC:0x8899ff}];
+function skyAt(t){let a=SKY[0],b=SKY[SKY.length-1];for(let i=0;i<SKY.length-1;i++)if(t>=SKY[i].t&&t<=SKY[i+1].t){a=SKY[i];b=SKY[i+1];break}const f=(t-a.t)/Math.max(1e-4,b.t-a.t),L=(x,y)=>new THREE.Color(x).lerp(new THREE.Color(y),f);return{top:L(a.top,b.top),mid:L(a.mid,b.mid),bot:L(a.bot,b.bot),fog:L(a.fog,b.fog),sun:L(a.sun,b.sun),sunI:a.sunI+(b.sunI-a.sunI)*f,amb:a.amb+(b.amb-a.amb)*f,sunC:L(a.sunC,b.sunC)}}
+function paintSky(){const k=skyAt(WX.t),x=sc.getContext('2d'),g=x.createLinearGradient(0,0,0,256);g.addColorStop(0,'#'+k.top.getHexString());g.addColorStop(.42,'#'+k.mid.getHexString());g.addColorStop(.55,'#'+k.bot.getHexString());g.addColorStop(1,'#'+k.bot.getHexString());x.fillStyle=g;x.fillRect(0,0,4,256);skyG.children[0].material.map.needsUpdate=true;
+ const ang=WX.t*PI*2-PI/2;sunDir.set(Math.cos(ang)*.7,Math.max(.06,Math.sin(ang)),-.5).normalize();sun.position.copy(sunDir).multiplyScalar(420);sun.lookAt(0,0,0);
+ sunL.intensity=Math.max(.15,k.sunI);sunL.color.copy(k.sunC);scene.fog.color.copy(k.fog);sun.material.color.copy(k.sun);
+ const nite=(WX.t>.8||WX.t<.18)?1:(WX.t>.68&&WX.t<.8)?.6:0;bmats.forEach(m=>m.emissiveIntensity=1.2+nite*1.2);pool.material.opacity=WX.wx=='lluvia'||WX.wx=='nieve'?.9:.35+nite*.35;
+ rmat.roughness=WX.wx=='lluvia'?.06:WX.wx=='nieve'?.4:.16;rmat.metalness=WX.wx=='lluvia'?.6:.35}
+const precip=new THREE.Points(new THREE.BufferGeometry(),new THREE.PointsMaterial({color:0xcfe4ff,size:.55,transparent:true,opacity:.65,depthWrite:false}));{const pa=new Float32Array(900*3);for(let i=0;i<900;i++){pa[i*3]=rnd(-60,60);pa[i*3+1]=rnd(0,70);pa[i*3+2]=rnd(-60,60)}precip.geometry.setAttribute('position',new THREE.Float32BufferAttribute(pa,3))}precip.frustumCulled=false;precip.visible=false;scene.add(precip);
+function setWeather(w){WX.wx=w;WX.snowMul=w=='nieve'?2:1;precip.visible=w!='sol';precip.material.color.setHex(w=='nieve'?0xffffff:0xcfe4ff);precip.material.size=w=='nieve'?.9:.55;
+ const z=$('zone');if(w=='lluvia'){z.textContent='— LLUVIA EN LA COSTA —'}else if(w=='nieve'){z.textContent='— NIEVE · EVENTO EXCLUSIVO x2 —'}else{z.textContent='— VUELVE EL SOL —'}z.style.opacity=1;clearTimeout(z.t);z.t=setTimeout(()=>z.style.opacity=0,2200);paintSky()}
+function phaseName(){return WX.t>.8||WX.t<.18?'noche':WX.t<.3?'amanecer':WX.t<.62?'día':'tarde'}
+function wxTick(dt){WX.t=(WX.t+dt/480)%1;WX.wt-=dt;
+ if(WX.wt<=0){const r=Math.random();WX.wt=rnd(360,720);if(r<.03&&WX.wx!='nieve')setWeather('nieve');else if(r<.22)setWeather(WX.wx=='sol'?'lluvia':'sol');else if(WX.wx!='sol')setWeather('sol');WX.wt=WX.wx=='nieve'?rnd(90,160):WX.wt}
+ else if(WX.wx=='nieve'&&WX.wt<0)setWeather('sol');
+ const ph=phaseName();if(ph!=WX.lastPhase){WX.lastPhase=ph;const z=$('zone');z.textContent=ph=='noche'?'— ANOCHECE EN NEON COAST —':ph=='día'?'— AMANECE —':'— '+ph.toUpperCase()+' —';z.style.opacity=1;clearTimeout(z.t);z.t=setTimeout(()=>z.style.opacity=0,1800)}
+ if(frame%15==0)paintSky();
+ if(precip.visible){const pa=precip.geometry.attributes.position.array,fast=WX.wx=='nieve'?7:65;for(let i=0;i<900;i++){pa[i*3+1]-=fast*dt;pa[i*3]+=WX.wx=='nieve'?Math.sin(performance.now()/900+i)*dt*3:0;if(pa[i*3+1]<camera.position.y-12){pa[i*3]=camera.position.x+rnd(-60,60);pa[i*3+1]=camera.position.y+rnd(20,70);pa[i*3+2]=camera.position.z+rnd(-60,60)}}precip.geometry.attributes.position.needsUpdate=true}
+ if(WX.wx=='lluvia'&&Math.random()<dt/14){rd.toneMappingExposure=3;setTimeout(()=>rd.toneMappingExposure=CFG.expo,120);beep(55,.9,'sawtooth',.035)}}
 try{const pm=new THREE.PMREMGenerator(rd),es=new THREE.Scene();es.add(skyG.clone());scene.environment=pm.fromScene(es,0,1,1500).texture}catch(e){}
 scene.add(new THREE.HemisphereLight(0xffb3a0,0x2a2040,.7));
 const sunL=new THREE.DirectionalLight(0xffa86a,2.4);sunL.castShadow=true;sunL.shadow.mapSize.set(1024,1024);
@@ -668,7 +692,7 @@ function step(dt){frame++;
   for(const s of shops){s.cool=Math.max(0,s.cool-dt);const g=s.h.g;g.visible=(s.x-px)**2+(s.z-pz)**2<10000;
     if(s.down>0){s.down-=dt;s.fall=Math.min(1,(s.fall||0)+dt*2.5);g.rotation.x=-PI/2*s.fall;g.position.y=s.down>0?.6:.35;continue}
     if(s.rob>0){if(Math.hypot(s.x-px,s.z-pz)>6||!P.foot){s.rob=0;toast('Atraco cancelado')}else{s.rob-=dt;
-      if(s.rob<=0){const m=Math.round(rnd(300,900));money+=m;P.ammo[2]+=6;P.rob++;if(P.life)P.life.rob++;s.cool=120;crime(2);scare(40);toast('+$'+m+' · atraco completado');
+      if(s.rob<=0){const m=Math.round(rnd(300,900))*WX.snowMul;money+=m;P.ammo[2]+=6;P.rob++;if(P.life)P.life.rob++;s.cool=120;crime(2);scare(40);toast('+$'+m+(WX.snowMul>1?' · NIEVE x2':'')+' · atraco completado');
         if(P.rob==2){P.own[3]=1;P.ammo[3]=8;P.mag[3]=6;setTimeout(()=>toast('Botín: escopeta'),1600)}}}}
     if(g.visible)anim(s.h,0,dt,0,s.rob>0,.35)}
   // Policia y busqueda
@@ -698,12 +722,12 @@ function step(dt){frame++;
   if(wp){const wd=Math.hypot(wp.x-px,wp.z-pz),wv=$('wp');wv.textContent='Marca a '+Math.round(wd)+' m · X quitar';if(wd<10){wp=null;wpBeacon.visible=false;wv.style.display='none';pop('¡Destino!');[660,880].forEach((f,i)=>setTimeout(()=>beep(f,.09),i*100))}}
   const ms=curM().s[mis.s];if(ms.wanted&&P.wanted>=ms.wanted)advance();else if(ms.wanted){}else if(ms.g&&dd<8)advance();else if(ms.rob&&P.rob-mis.r0>=(ms.rob===1?1:ms.rob))advance();else if(ms.kill&&P.kills-mis.k0>=ms.kill)advance();else if(ms.speed&&speed*3.6>=ms.speed)advance();else if(ms.cash&&money>=ms.cash)advance();else if(ms.buycar&&(P.eng+P.carm+(P.turbo?1:0)>mis.e0))advance();else if(ms.ev&&P.wanted<=0)advance();else if(ms.buy&&P.apt)advance();
   if(mis.t>0){mis.t-=dt;if(mis.t<=0)failStep()}if(frame%12==0)rebuildRoute();rt2.offset.y-=dt*1.2;
-  if(P.apt){P.inc-=dt;if(P.inc<=0){P.inc=20;money+=40;toast('+$40 de alquiler')}}
+  wxTick(dt);if(P.apt){P.inc-=dt;if(P.inc<=0){P.inc=20;money+=40;toast('+$40 de alquiler')}}
   beam.material.opacity=.28+.12*Math.sin(performance.now()/300);
   if(frame%10==0){const _ht=P.hurtT?performance.now()-P.hurtT:1e9;$('dmg').style.opacity=Math.max(_ht<900?(1-_ht/900)*.9:0,P.hp<35?.35+.2*Math.sin(performance.now()/300):0);$('money').textContent='$'+money;$('kmh').textContent=Math.round(speed*3.6);$('hp').style.width=Math.max(0,P.hp)+'%';$('arm').style.width=P.arm+'%';
     $('st').textContent=stars?'★'.repeat(stars)+'☆'.repeat(5-stars)+(P.wanted>0?' · '+Math.ceil(P.wt)+'s':''):'';
     $('mode').textContent=(P.foot?W[P.w].n+(W[P.w].am?' · '+(P.infAmmo?'∞':(P.mag[P.w]??0)+'/'+P.ammo[P.w])+(P.rel>0?' · recargando…':' · R recarga'):'')+(P.god?' · DIOS':''):'Al volante')+' · Coche '+Math.round(P.chp)+'%';
-    {const m=curM();$('obj').textContent=tgt.on?'Objetivo a '+Math.round(dd)+' m':'Sin destino';$('mis').innerHTML='<b>'+m.n+'</b> · paso '+(mis.s+1)+'/'+m.s.length+'<br>'+m.s[mis.s].t+(mis.t>0?'<br>Tiempo: '+Math.ceil(mis.t)+' s':'')+'<br>Recompensa $'+m.r}$('dist').textContent=px>EXT?'Playa':Math.hypot(px,pz)<CELL*2.2?'Centro':'Barrio';if($('dist').textContent!=window._dz){window._dz=$('dist').textContent;const z=$('zone');z.textContent='— '+window._dz.toUpperCase()+' —';z.style.opacity=1;clearTimeout(z.t);z.t=setTimeout(()=>z.style.opacity=0,1600)}
+    {const m=curM();$('obj').textContent=tgt.on?'Objetivo a '+Math.round(dd)+' m':'Sin destino';$('mis').innerHTML='<b>'+m.n+'</b> · paso '+(mis.s+1)+'/'+m.s.length+'<br>'+m.s[mis.s].t+(mis.t>0?'<br>Tiempo: '+Math.ceil(mis.t)+' s':'')+'<br>Recompensa $'+m.r}$('dist').textContent=px>EXT?'Playa':Math.hypot(px,pz)<CELL*2.2?'Centro':'Barrio';$('wx').textContent=' '+(WX.wx=='sol'?(phaseName()=='noche'?'☾ noche':'☀ '+phaseName()):WX.wx=='lluvia'?'☂ lluvia':'❄ nieve x2');if($('dist').textContent!=window._dz){window._dz=$('dist').textContent;const z=$('zone');z.textContent='— '+window._dz.toUpperCase()+' —';z.style.opacity=1;clearTimeout(z.t);z.t=setTimeout(()=>z.style.opacity=0,1600)}
     let hint='';
     if(P.foot){const cs=nearCarShop(),s=cs?0:nearShop(),n=(s||cs)?0:nearNpc(2.8);
       if(cs)hint='Concesionario '+cs.name+' · B: ver coches';
