@@ -97,7 +97,7 @@ html,body{height:100%;margin:0;background:#150d3a;overflow:hidden;color:var(--in
 <div id="pause"><div class="box"><div class="side"><h2>PAUSA</h2><button id="pb0" onclick="pauseNav(0)">Continuar</button><button id="pb1" onclick="pauseNav(1)">Mapa</button><button id="pb2" onclick="pauseNav(2)">Opciones</button><button id="pb3" onclick="pauseNav(3)">Ayuda</button><button id="pb4" onclick="pauseNav(4)">Salir al título</button></div><div class="main" id="pmain"></div></div></div>
 <div class="p" id="spd"><b id="kmh">0</b> km/h<br><span id="mode"></span></div>
 <div class="p" id="hint"></div><div class="p" id="cross"></div>
-<div class="p" id="help">WASD mover · Ratón/flechas cámara · Shift correr<br>Clic/J atacar · 1-4 armas · I inventario<br>E atraco/saludar · B tienda/concesionario · H botiquín · R recargar<br>F coche · Espacio saltar/freno · C agacharse · Click-der apuntar<br>Verde=tienda Naranja=coches Blanco=hotel<br>T taxi · E usar · M mapa · X marca · Esc menú</div>
+<div class="p" id="help">WASD mover · Ratón/flechas cámara · Shift correr<br>Clic/J atacar · 1-4 armas · I inventario<br>E atraco/saludar · B tienda/concesionario · H botiquín · R recargar<br>F coche · Espacio saltar/freno · C agacharse · Click-der apuntar<br>Verde=tienda Naranja=coches Blanco=hotel<br>T taxi · E usar · M mapa · X marca · Esc menú · Trucos: HESOYAM BAGUVIX…</div>
 <div class="p" id="toast"></div><div class="p" id="inv"></div><div id="dmg"></div><div id="zone"></div><div id="pop"></div><div id="wasted"><h1>ELIMINADO</h1><p id="wastedSub"></p></div>
 <div id="busted"><div class="box"><h2>Hospital Costa — Alta médica</h2><div class="sub">Se han retirado todos los objetos ilegales · Factura: $150 + 20% de tu dinero</div><ul id="rap"></ul><div class="sign"><button onclick="acceptBusted()">Firmar y Aceptar</button><span style="font-size:12px;opacity:.6">X _______________</span></div></div></div>
 <div id="start"><div class="sun"></div><div class="grid"></div><div class="menu">
@@ -276,7 +276,7 @@ function applyCfgLive(){pr=CFG.res>0?CFG.res:CFG.q=='alta'?Math.min(devicePixelR
 function pauseDraw(){for(let i=0;i<5;i++)$('pb'+i).classList.toggle('on',i==pauseTab);const m=$('pmain'),cm=curM();
  if(pauseTab==0)m.innerHTML=`<h3>${cm.n}</h3><div>Paso ${mis.s+1}/${cm.s.length}: ${cm.s[mis.s].t}</div><div>Dinero <b>$${money}</b> · Atracos ${P.rob} · Bajas ${P.kills}</div><div>Tiempo ${Math.floor((P.playt||0)/60)} min · Distancia ${Math.round(P.dist||0)} m</div><button class="big" onclick="pauseNav(0)">▶ Continuar</button>`;
  else if(pauseTab==2)m.innerHTML=`<h3>Opciones rápidas</h3><div>Calidad</div><div class="opt">${['baja','media','alta'].map(q=>`<button class="${q==CFG.q?'on':''}" onclick="pickQ('${q}');pauseDraw()">${q}</button>`).join('')}</div><div>Sonido</div><div class="opt">${[1,0].map(v=>`<button class="${v==CFG.snd?'on':''}" onclick="pickSnd(${v});pauseDraw()">${v?'Sí':'No'}</button>`).join('')}</div><div>Sombras</div><div class="opt">${[1,0].map(v=>`<button class="${v==CFG.sh?'on':''}" onclick="pickSh(${v});pauseDraw()">${v?'Sí':'No'}</button>`).join('')}</div><div>Sensibilidad (${CFG.sens.toFixed(1)}x)</div><input type="range" min="0.1" max="3" step="0.1" value="${CFG.sens}" oninput="pickS(parseFloat(this.value));pauseDraw()"><div>FOV (${CFG.fov})</div><input type="range" min="55" max="78" step="1" value="${CFG.fov}" oninput="pickFov(parseInt(this.value));pauseDraw()"><div style="opacity:.7;font-size:12px">Los cambios se aplican al continuar.</div>`;
- else m.innerHTML=`<h3>Ayuda</h3><div>WASD moverse · Shift correr · Espacio saltar · C agacharse<br>Clic/J atacar · Click-der apuntar · R recargar · 1-4 armas<br>E usar (atraco, balón, grafiti, BAR, puertas) · B tienda · H botiquín<br>F coche · T taxi · M mapa grande · X quitar marca · I inventario<br>Verde tienda · Naranja coches · Blanco hotel · Rosa puertas/club</div><button class="big" onclick="pauseNav(0)">▶ Continuar</button>`}
+ else m.innerHTML=`<h3>Ayuda</h3><div>WASD moverse · Shift correr · Espacio saltar · C agacharse<br>Clic/J atacar · Click-der apuntar · R recargar · 1-4 armas<br>E usar (atraco, balón, grafiti, BAR, puertas) · B tienda · H botiquín<br>F coche · T taxi · M mapa grande · X quitar marca · I inventario<br>Verde tienda · Naranja coches · Blanco hotel · Rosa puertas/club</div><div>Trucos por palabra: HESOYAM BAGUVIX FULLCLIP NUTTERTOOLS PROFESSIONALTOOLS AEZAKMI LEAVEMEALONE BRINGITON ROCKETMAN CPKTNWT CRAZYTOWN MONEYTALKS GHOSTTOWN</div><button class="big" onclick="pauseNav(0)">▶ Continuar</button>`}
 document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&started&&running&&!paused&&!inv.open&&!mapBig)setPause(true)});
 function toggleMap(force){if(!running)return;mapBig=force!==undefined?force:!mapBig;const mm=$('mm');mm.width=mm.height=mapBig?300:150;$('mmw').classList.toggle('big',mapBig);if(mapBig){if(document.exitPointerLock)document.exitPointerLock();toast('Clic en el mapa para marcar · M cerrar · X borrar')}else if(cn.requestPointerLock&&!inv.open)cn.requestPointerLock()}
 $('mm').addEventListener('click',e=>{if(!mapBig||!running)return;e.stopPropagation();const r=$('mm').getBoundingClientRect(),S=$('mm').width,C=S/2,sc=.5,th=P.foot?cam.yaw:P.th,c=Math.cos(th),n=Math.sin(th),mx=(e.clientX-r.left)*(S/r.width),my=(e.clientY-r.top)*(S/r.height),dx=mx-C,dy=my-C,px=P.foot?P.fx:P.x,pz=P.foot?P.fz:P.z;wp={x:px+(-c*sc*dx+n*sc*dy)/(sc*sc),z:pz+(-n*sc*dx-c*sc*dy)/(sc*sc)};wpBeacon.position.set(wp.x,30,wp.z);wpBeacon.visible=true;beep(700,.08);$('wp').style.display='block'});
@@ -501,8 +501,8 @@ function dmg(v,nx,nz){if(frame-dmg.f<8)return;dmg.f=frame;v=Math.max(0,v*(1-Math
 dmg.f=-99;
 startStep();
 function toast(t){const e=$('toast');e.textContent=t;e.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.opacity=0,1500)}
-function crime(a){P.wanted=Math.min(5,P.wanted+a);P.wt=25;if(P.life)P.life.maxW=Math.max(P.life.maxW,Math.ceil(P.wanted))}
-function hurt(a,cause){if(P.dying||P.busted||!running)return;const ab=Math.min(P.arm,a*.6);P.arm-=ab;P.hp-=a-ab;P.hurtT=performance.now();shake=Math.max(shake,.25);if(a>.5)beep(110,.2,'sawtooth',.06);if(P.hp<=0)startDeath(cause||'golpeado',0,0)}
+function crime(a){if(P.noWanted)return;P.wanted=Math.min(5,P.wanted+a);P.wt=25;if(P.life)P.life.maxW=Math.max(P.life.maxW,Math.ceil(P.wanted))}
+function hurt(a,cause){if(P.dying||P.busted||!running)return;if(P.god){P.hp=100;P.arm=100;return}const ab=Math.min(P.arm,a*.6);P.arm-=ab;P.hp-=a-ab;P.hurtT=performance.now();shake=Math.max(shake,.25);if(a>.5)beep(110,.2,'sawtooth',.06);if(P.hp<=0)startDeath(cause||'golpeado',0,0)}
 function startDeath(cause,vx,vz){if(P.dying||P.busted)return;if(!P.foot){P.fx=P.x;P.fz=P.z;P.fth=P.th}P.foot=true;P.h.g.visible=true;P.fvx=P.fvz=0;P.vx=P.vz=0;speed=0;P.vy=0;P.fy=0;
  P.dying={t:0,shown:false,vx:vx||0,vz:vz||0,fall:0,spin:(cause=='coche'?rnd(2,4):0),cause};timeScale=.22;if(document.exitPointerLock&&document.pointerLockElement)document.exitPointerLock();beep(90,.5,'sawtooth',.07)}
 function dyingUpdate(dt){const d=P.dying;if(!d)return;d.t+=dt/timeScale;d.vx*=Math.exp(-2*dt);d.vz*=Math.exp(-2*dt);P.fx+=d.vx*dt;P.fz+=d.vz*dt;const o={x:P.fx,z:P.fz};collide(o,.5);P.fx=o.x;P.fz=o.z;
@@ -541,9 +541,9 @@ function taxiTry(){if(!P.foot||inv.open)return;if(taxi.on){taxi.on=false;taxiBea
  const n=nearNpc(3.5);if(!n)return toast('Acércate a un peatón y pulsa T');n.taxiHide=true;taxi.on=true;taxi.npc=n;taxi.x=Math.round(rnd(-3,3))*CELL;taxi.z=Math.round(rnd(-3,3))*CELL;taxiBeacon.position.set(taxi.x,30,taxi.z);taxiBeacon.visible=true;taxi.t=120;toast('¡Taxista! Llévalo · sube al coche (F)')}
 function scare(r){for(const n of npcs)if(Math.hypot(n.x-P.fx,n.z-P.fz)<r)n.flee=Math.max(n.flee,5)}
 function knock(e,cop){e.down=cop?6:10;e.flee=0;e.pop=.28;e.fall=0;e.svx=0;e.svz=0;P.kills++;if(P.life)P.life.kills++;crime(cop?1.5:.7);pop(cop?'¡Poli noqueado!':'¡Noqueado!');beep(150,.12,'sawtooth',.06)}
-function startReload(){const w=W[P.w];if(!w.am||P.rel>0)return;if((P.mag[P.w]??0)>=(P.magSize[P.w]||0)||P.ammo[P.w]<=0)return;P.rel=P.w==3?1.8:1.2;toast('Recargando…')}
+function startReload(){if(P.infAmmo)return;const w=W[P.w];if(!w.am||P.rel>0)return;if((P.mag[P.w]??0)>=(P.magSize[P.w]||0)||P.ammo[P.w]<=0)return;P.rel=P.w==3?1.8:1.2;toast('Recargando…')}
 function fire(){if(!running||inv.open||paused||P.dying||P.busted||!P.foot||P.cd>0||P.rel>0)return;const w=W[P.w];
-  if(w.am){if((P.mag[P.w]??0)<=0){startReload();P.cd=.4;return toast(P.ammo[P.w]>0?'¡Cargador vacío! Pulsa R':'Sin munición')}P.mag[P.w]--}
+  if(w.am&&!P.infAmmo){if((P.mag[P.w]??0)<=0){startReload();P.cd=.4;return toast(P.ammo[P.w]>0?'¡Cargador vacío! Pulsa R':'Sin munición')}P.mag[P.w]--}
   P.cd=w.cd;P.anim=.25;const _v=new THREE.Vector3();camera.getWorldDirection(_v);let yaw=Math.atan2(_v.x,_v.z);if(!isFinite(yaw))yaw=P.fth;const sx=Math.sin(yaw),sz=Math.cos(yaw),spr=w.s*(keys.MouseR?.55:1);let best=null,bd=1e9;
   for(const e of T()){if(e.down>0||e.act===false)continue;const dx=e.x-P.fx,dz=e.z-P.fz,al=dx*sx+dz*sz,la=Math.abs(dx*sz-dz*sx);if(al>0&&al<w.r&&la<spr&&al<bd){best=e;bd=al}}
   let bt=null,btD=1e9;for(const b of bottles){if(!b.up)continue;const dx=b.x-P.fx,dz=b.z-P.fz,al=dx*sx+dz*sz,la=Math.abs(dx*sz-dz*sx);if(al>0&&al<w.r&&la<.9&&al<btD){bt=b;btD=al}}
@@ -554,7 +554,24 @@ function toggleCar(){
   if(!P.foot&&speed<7){P.foot=true;const r=[-Math.cos(P.th),Math.sin(P.th)];P.fx=P.x+r[0]*2.4;P.fz=P.z+r[1]*2.4;P.fth=cam.yaw=P.th;P.fvx=P.fvz=0;P.vx=P.vz=0;P.h.g.visible=true;applyW()}
   else if(P.foot&&Math.hypot(P.fx-P.x,P.fz-P.z)<6){P.foot=false;P.h.g.visible=false;applyW()}}
 // Entrada
-addEventListener('keydown',e=>{keys[e.code]=1;if(/Arrow|Space|Tab/.test(e.code))e.preventDefault();if(!running)return;const c=e.code;
+const CHEATS={};
+let cheatBuf='',cheatT=null;
+function cheatOn(n){toast('Truco activado: '+n);pop(n);[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.09),i*90))}
+CHEATS.HESOYAM=()=>{P.hp=100;P.arm=100;repair();money+=500;cheatOn('HESOYAM · todo al máximo +$500')};
+CHEATS.BAGUVIX=()=>{P.god=!P.god;if(P.god)P.hp=100;cheatOn('BAGUVIX · salud infinita '+(P.god?'ON':'OFF'))};
+CHEATS.FULLCLIP=()=>{P.infAmmo=!P.infAmmo;cheatOn('FULLCLIP · munición infinita '+(P.infAmmo?'ON':'OFF'))};
+CHEATS.NUTTERTOOLS=()=>{P.own[1]=P.own[2]=1;P.ammo[2]+=36;P.mag[2]=P.magSize[2];cheatOn('NUTTERTOOLS · bate + pistola')};
+CHEATS.PROFESSIONALTOOLS=()=>{P.own=[1,1,1,1];P.ammo[2]+=60;P.ammo[3]+=24;P.mag[2]=P.magSize[2];P.mag[3]=P.magSize[3];P.spray=(P.spray||0)+3;cheatOn('PROFESSIONALTOOLS · arsenal completo')};
+CHEATS.AEZAKMI=()=>{P.noWanted=!P.noWanted;if(P.noWanted){P.wanted=0}cheatOn('AEZAKMI · poli ciego '+(P.noWanted?'ON':'OFF'))};
+CHEATS.LEAVEMEALONE=()=>{P.wanted=0;cheatOn('LEAVEMEALONE · sin búsqueda')};
+CHEATS.BRINGITON=()=>{P.noWanted=false;P.wanted=5;P.wt=25;cheatOn('BRINGITON · 5 estrellas')};
+CHEATS.ROCKETMAN=()=>{P.turbo=1;P.eng=3;P.carm=100;repair();cheatOn('ROCKETMAN · coche cohete')};
+CHEATS.CPKTNWT=()=>{for(const c of ai){if(c.off)continue;if(Math.hypot(c.g.position.x-P.x,c.g.position.z-P.z)<40)c.stun=3}shake=.6;cheatOn('CPKTNWT · tráfico parado')};
+CHEATS.CRAZYTOWN=()=>{for(const n of npcs)n.flee=Math.max(n.flee,8);cheatOn('CRAZYTOWN · pánico')};
+CHEATS.MONEYTALKS=()=>{money+=500;cheatOn('MONEYTALKS · +$500')};
+CHEATS.GHOSTTOWN=()=>{P.ghost=!P.ghost;ai.forEach(c=>c.off=!!P.ghost);cheatOn('GHOSTTOWN · sin tráfico '+(P.ghost?'ON':'OFF'))};
+addEventListener('keydown',e=>{keys[e.code]=1;const kc=e.code;
+  if(/^Key[A-Z]$/.test(kc)&&started&&running&&!paused){cheatBuf+=kc[3];clearTimeout(cheatT);cheatT=setTimeout(()=>cheatBuf='',1500);const w=Object.keys(CHEATS).find(k=>cheatBuf.endsWith(k));if(w){cheatBuf='';try{CHEATS[w]()}catch(err){}}}if(/Arrow|Space|Tab/.test(e.code))e.preventDefault();if(!running)return;const c=e.code;
   if(c=='KeyI'||c=='Tab'||(inv.open&&(c=='Escape'||c=='KeyB'))){inv.open=!inv.open;if(inv.open&&document.exitPointerLock)document.exitPointerLock();showInv();return}
   if(c=='Escape'){if(!started)return;if(mapBig)toggleMap(false);else setPause(!paused);return}
   if(inv.open)return;
@@ -664,7 +681,7 @@ function step(dt){frame++;
   beam.material.opacity=.28+.12*Math.sin(performance.now()/300);
   if(frame%10==0){const _ht=P.hurtT?performance.now()-P.hurtT:1e9;$('dmg').style.opacity=Math.max(_ht<900?(1-_ht/900)*.9:0,P.hp<35?.35+.2*Math.sin(performance.now()/300):0);$('money').textContent='$'+money;$('kmh').textContent=Math.round(speed*3.6);$('hp').style.width=Math.max(0,P.hp)+'%';$('arm').style.width=P.arm+'%';
     $('st').textContent=stars?'★'.repeat(stars)+'☆'.repeat(5-stars)+(P.wanted>0?' · '+Math.ceil(P.wt)+'s':''):'';
-    $('mode').textContent=(P.foot?W[P.w].n+(W[P.w].am?' · '+(P.mag[P.w]??0)+'/'+P.ammo[P.w]+(P.rel>0?' · recargando…':' · R recarga'):''):'Al volante')+' · Coche '+Math.round(P.chp)+'%';
+    $('mode').textContent=(P.foot?W[P.w].n+(W[P.w].am?' · '+(P.infAmmo?'∞':(P.mag[P.w]??0)+'/'+P.ammo[P.w])+(P.rel>0?' · recargando…':' · R recarga'):'')+(P.god?' · DIOS':''):'Al volante')+' · Coche '+Math.round(P.chp)+'%';
     {const m=curM();$('obj').textContent=tgt.on?'Objetivo a '+Math.round(dd)+' m':'Sin destino';$('mis').innerHTML='<b>'+m.n+'</b> · paso '+(mis.s+1)+'/'+m.s.length+'<br>'+m.s[mis.s].t+(mis.t>0?'<br>Tiempo: '+Math.ceil(mis.t)+' s':'')+'<br>Recompensa $'+m.r}$('dist').textContent=px>EXT?'Playa':Math.hypot(px,pz)<CELL*2.2?'Centro':'Barrio';if($('dist').textContent!=window._dz){window._dz=$('dist').textContent;const z=$('zone');z.textContent='— '+window._dz.toUpperCase()+' —';z.style.opacity=1;clearTimeout(z.t);z.t=setTimeout(()=>z.style.opacity=0,1600)}
     let hint='';
     if(P.foot){const cs=nearCarShop(),s=cs?0:nearShop(),n=(s||cs)?0:nearNpc(2.8);
