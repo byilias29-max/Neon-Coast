@@ -442,8 +442,9 @@ const GUN=[null,new THREE.CylinderGeometry(.04,.05,.9).translate(0,-.75,0),new T
 const trc=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]),new THREE.LineBasicMaterial({color:0xffe08a}));trc.frustumCulled=false;trc.visible=false;scene.add(trc);
 const NAMES=['Marta','Dani','Lucía','Hugo','Iker','Nuria','Pablo','Sofía','Álex','Carmen','Rubén','Vera','Leo','Inés','Tito','Rosa'],JOBS=['DJ','Camarero','Surfista','Taxista','Chef','Artista','Repartidor','Turista'];
 const npcs=[],cops=[];
-for(let i=0;i<40;i++)npcs.push({h:mkHuman(pick(COLS),pick([0x222233,0x445566,0x663344,0x2d4a35]),pick(HAIR)),cx:(Math.floor(rnd(-H,H))+.5)*CELL,cz:(Math.floor(rnd(-H,H))+.5)*CELL,t:rnd(0,216),dir:Math.random()<.5?1:-1,sp:rnd(1.1,1.8),flee:0,down:0,fo:0,x:0,z:0,hx:0,hz:1,name:pick(NAMES),job:pick(JOBS)});
+for(let i=0;i<64;i++)npcs.push({h:mkHuman(pick(COLS),pick([0x222233,0x445566,0x663344,0x2d4a35]),pick(HAIR)),cx:(Math.floor(rnd(-H,H))+.5)*CELL,cz:(Math.floor(rnd(-H,H))+.5)*CELL,t:rnd(0,216),dir:Math.random()<.5?1:-1,sp:rnd(1.1,1.8),flee:0,down:0,fo:0,x:0,z:0,hx:0,hz:1,name:pick(NAMES),job:pick(JOBS)});
 for(let i=0;i<5;i++){const h=mkHuman(0x1e3a8a,0x111827);h.g.visible=false;cops.push({h,x:0,z:0,act:false,down:0})}
+const copsDead=[],NP_ALIVE=64;let pedT=1;
 const T=()=>npcs.concat(cops,shops);
 function pperim(n){const t=((n.t%216)+216)%216,sd=t/54|0,r=t%54-27;let px,pz,dx,dz;
   if(sd==0){px=r;pz=-27;dx=1;dz=0}else if(sd==1){px=27;pz=r;dx=0;dz=1}else if(sd==2){px=-r;pz=27;dx=-1;dz=0}else{px=-27;pz=-r;dx=0;dz=-1}
@@ -561,7 +562,7 @@ function showInv(){const e=$('inv');e.style.display=inv.open?'block':'none';if(!
   else h+=`<div class=row>Fútbol: goles<i>${acts.goles}</i></div><div class=row onclick="toast('Balón en la playa este')">Ir al campo<i>E chutar</i></div><div class=row>Botellas rotas<i>${acts.botellas}/8 (+$15)</i></div><div class=row>Dispara a lo verde junto a tiendas<i></i></div><div class=row>Grafitis<i>${acts.graf}/4 (spray:${P.spray||0})</i></div><div class=row>Taxi: viajes<i>${acts.taxis} · +$${acts.dineroTaxi}</i></div><div class=row>Pulsa T junto a un peatón<i></i></div><div class=row>Bares (copa $10)<i>${P.drunk>0?'mareado '+Math.ceil(P.drunk)+'s':'sobrio'}</i></div><div class=row>E en el BAR · E balón · E grafiti<i></i></div><div class=row>Rumor: arriba, arriba, abajo, abajo…<i>dicen los veteranos</i></div><div class=row>Tiempo jugado<i>${Math.floor((P.playt||0)/60)} min</i></div><div class=row>Distancia<i>${Math.round(P.dist||0)} m</i></div>`;
   e.innerHTML=h+'</div>'}
 function heal(){if(P.med>0&&P.hp<100){P.med--;P.hp=Math.min(100,P.hp+45);beep(520,.09);toast('+Salud')}}
-const nearShop=()=>P.foot&&shops.find(s=>Math.hypot(s.x-P.fx,s.z-P.fz)<4.2),nearNpc=r=>npcs.find(n=>n.down<=0&&Math.hypot(n.x-P.fx,n.z-P.fz)<r);
+const nearShop=()=>P.foot&&shops.find(s=>Math.hypot(s.x-P.fx,s.z-P.fz)<4.2),nearNpc=r=>npcs.find(n=>!(n.down>0||n.dead||n.off)&&Math.hypot(n.x-P.fx,n.z-P.fz)<r);
 function nearDoor(){return P.foot&&doors.find(d=>Math.hypot(d.x-P.fx,d.z-P.fz)<2.8)}
 function nearBar(){return P.foot&&bars.find(b=>Math.hypot(b.x-P.fx,b.z-P.fz)<3.5)}
 function nearGraf(){return P.foot&&grafs.find(g=>Math.hypot(g.m.position.x-P.fx,g.m.position.z-P.fz)<3.2)}
@@ -577,7 +578,8 @@ function buy(){if(!nearShop())return;const w=W[P.w];
 function taxiTry(){if(!P.foot||inv.open)return;if(taxi.on){taxi.on=false;taxiBeacon.visible=false;if(taxi.npc){taxi.npc.taxiHide=false}toast('Carrera cancelada');return}
  const n=nearNpc(3.5);if(!n)return toast('Acércate a un peatón y pulsa T');n.taxiHide=true;taxi.on=true;taxi.npc=n;taxi.x=Math.round(rnd(-3,3))*CELL;taxi.z=Math.round(rnd(-3,3))*CELL;taxiBeacon.position.set(taxi.x,30,taxi.z);taxiBeacon.visible=true;taxi.t=120;toast('¡Taxista! Llévalo · sube al coche (F)')}
 function scare(r){for(const n of npcs)if(Math.hypot(n.x-P.fx,n.z-P.fz)<r)n.flee=Math.max(n.flee,5)}
-function knock(e,cop){e.down=cop?6:10;e.flee=0;e.pop=.28;e.fall=0;e.svx=0;e.svz=0;P.kills++;if(P.life)P.life.kills++;crime(cop?1.5:.7);pop(cop?'¡Poli noqueado!':'¡Noqueado!');beep(150,.12,'sawtooth',.06)}
+function knock(e,cop){if(e.dead||e.gone)return;e.down=cop?6:10;e.flee=0;e.pop=.28;e.fall=0;e.svx=0;e.svz=0;e.stay=1;e.kx=e.x;e.kz=e.z;P.kills++;if(P.life)P.life.kills++;crime(cop?1.5:.7);pop(cop?'¡Poli noqueado!':'¡Noqueado!');beep(150,.12,'sawtooth',.06);if(cop)retireCop(e)}
+function retireCop(c){const g=c.h.g;g.position.x=c.x;g.position.z=c.z;copsDead.push({h:c.h,x:c.x,z:c.z,fall:c.fall||0,down:c.down||0});copsDead[copsDead.length-1].svx=c.svx||0;copsDead[copsDead.length-1].svz=c.svz||0;const idx=cops.indexOf(c);if(idx>=0){const h=mkHuman(0x1e3a8a,0x111827);h.g.visible=false;cops[idx]={h,x:0,z:0,act:false,down:0}}}
 function startReload(){if(P.infAmmo)return;const w=W[P.w];if(!w.am||P.rel>0)return;if((P.mag[P.w]??0)>=(P.magSize[P.w]||0)||P.ammo[P.w]<=0)return;P.rel=P.w==3?1.8:1.2;toast('Recargando…')}
 function fire(){if(!running||inv.open||paused||P.dying||P.busted||!P.foot||P.cd>0||P.rel>0)return;const w=W[P.w];
   if(w.am&&!P.infAmmo){if((P.mag[P.w]??0)<=0){startReload();P.cd=.4;return toast(P.ammo[P.w]>0?'¡Cargador vacío! Pulsa R':'Sin munición')}P.mag[P.w]--}
@@ -648,7 +650,7 @@ function step(dt){frame++;
     P.vx=f[0]*vf+r[0]*vl;P.vz=f[1]*vf+r[1]*vl;P.x+=P.vx*dt;P.z+=P.vz*dt;collide(P,1.7);speed=Math.hypot(P.vx,P.vz);P.dist=(P.dist||0)+speed*dt;
     for(const c of ai){if(c.off)continue;const dx=P.x-c.g.position.x,dz=P.z-c.g.position.z,d=Math.hypot(dx,dz);
       if(d<3.6){const nx=dx/d,nz=dz/d;P.x+=nx*(3.6-d)*.6;P.z+=nz*(3.6-d)*.6;const vn=P.vx*nx+P.vz*nz;if(vn<0){P.vx-=1.5*vn*nx;P.vz-=1.5*vn*nz;shake=Math.min(1,-vn/20);if(-vn>4)dmg(-vn,nx,nz);if(-vn>5)crime(.3)}c.stun=1.5}}
-    if(speed>8)for(const e of npcs)if(e.down<=0&&Math.hypot(e.x-P.x,e.z-P.z)<2.4){knock(e);e.svx=P.vx*.45;e.svz=P.vz*.45;shake=.4}
+    if(speed>8)for(const e of npcs)if(!(e.down>0||e.dead)&&Math.hypot(e.x-P.x,e.z-P.z)<2.4){knock(e);e.svx=P.vx*.45;e.svz=P.vz*.45;shake=.4}
   if(speed>10)for(const e of npcs){if(e.down>0||e.off)continue;const dx=e.x-P.x,dz=e.z-P.z,d=Math.hypot(dx,dz);if(d<9&&d>2.4&&(P.vx*dx+P.vz*dz)/(d||1)>6)e.flee=Math.max(e.flee,6)}
     P.cgy+=(gh(P.x,P.z)-P.cgy)*Math.min(1,14*dt);car.position.set(P.x,P.cgy,P.z);car.rotation.y=P.th;car.rotation.z=-vl*.006;px=P.x;pz=P.z;
   }else if(P.dying){dyingUpdate(dt);px=P.fx;pz=P.fz}else{
@@ -686,15 +688,19 @@ function step(dt){frame++;
    smk.geometry.attributes.position.needsUpdate=true;smk.material.color.setHex(P.chp<20?0x222222:0x8a8a8a)}
   // Peatones
   const armed=P.foot&&P.w>=2;
-  for(const n of npcs){if(n.off||n.taxiHide){n.h.g.visible=false;continue}pperim(n);const d2=(n.x-px)**2+(n.z-pz)**2,g=n.h.g;
-    if(n.down>0){n.down-=dt;g.visible=d2<10000;n.fall=Math.min(1,(n.fall||0)+dt*2.5);g.rotation.x=-PI/2*n.fall;if(n.svx){n.x+=n.svx*dt;n.z+=n.svz*dt;n.svx*=Math.exp(-3*dt);n.svz*=Math.exp(-3*dt)}g.position.set(n.x,n.down>0?.6:.35,n.z);continue}
+  for(const n of npcs){if(n.off||n.taxiHide){n.h.g.visible=false;continue}if(n.stay){n.x=n.kx;n.z=n.kz}else pperim(n);const d2=(n.x-px)**2+(n.z-pz)**2,g=n.h.g;
+    if(n.down>0||n.dead){if(n.down>0){n.down-=dt;if(n.down<=0)n.dead=1}else n.fall=1;g.visible=d2<12500&&!n.gone;n.fall=n.dead?1:Math.min(1,(n.fall||0)+dt*2.5);g.rotation.x=-PI/2*n.fall;if(n.svx){n.x+=n.svx*dt;n.z+=n.svz*dt;n.svx*=Math.exp(-3*dt);n.svz*=Math.exp(-3*dt)}g.position.set(n.x,(n.dead||n.down<=0)?.35:.6,n.z);if(n.dead&&d2>15625)n.gone=1;continue}
     if(armed&&d2<196)n.flee=Math.max(n.flee,3);
     if(n.flee>0){if(!n.fo){n.fo=1;if(n.hx*(n.x-px)+n.hz*(n.z-pz)<0)n.dir*=-1}n.flee-=dt;if(n.flee<=0)n.fo=0}
     n.t+=n.dir*(n.flee>0?5.8:n.sp)*dt;g.visible=d2<10000;if(!g.visible)continue;
     g.position.x=n.x;g.position.z=n.z;g.rotation.y=Math.atan2(n.hx,n.hz);anim(n.h,n.flee>0?5.8:n.sp,dt,0,0,.35)}
+  pedT-=dt;if(pedT<=0){pedT=1.2;let alive=0;for(const n of npcs)if(!(n.off||n.taxiHide||n.dead||n.gone))alive++;
+    if(alive<NP_ALIVE){const a=rnd(0,PI*2),dd=rnd(104,140),ci=Math.floor((px+Math.cos(a)*dd)/CELL),cj=Math.floor((pz+Math.sin(a)*dd)/CELL);
+      if(ci>=-H&&ci<H&&cj>=-H&&cj<H)npcs.push({h:mkHuman(pick(COLS),pick([0x222233,0x445566,0x663344,0x2d4a35]),pick(HAIR)),cx:(ci+.5)*CELL,cz:(cj+.5)*CELL,t:rnd(0,216),dir:Math.random()<.5?1:-1,sp:rnd(1.1,1.8),flee:0,down:0,fo:0,x:0,z:0,hx:0,hz:1,name:pick(NAMES),job:pick(JOBS)})}}
+  if(frame%600==0)for(let i=npcs.length-1;i>=0;i--)if(npcs[i].gone){scene.remove(npcs[i].h.g);npcs.splice(i,1)}
   // Tiendas
   for(const s of shops){s.cool=Math.max(0,s.cool-dt);const g=s.h.g;g.visible=(s.x-px)**2+(s.z-pz)**2<10000;
-    if(s.down>0){s.down-=dt;s.fall=Math.min(1,(s.fall||0)+dt*2.5);g.rotation.x=-PI/2*s.fall;g.position.y=s.down>0?.6:.35;continue}
+    if(s.dead||s.down>0){if(s.down>0){s.down-=dt;if(s.down<=0)s.dead=1}else s.fall=1;g.rotation.x=-PI/2*(s.dead?1:Math.min(1,(s.fall||0)+dt*2.5));g.position.y=(s.dead||s.down<=0)?.35:.6;continue}
     if(s.rob>0){if(Math.hypot(s.x-px,s.z-pz)>6||!P.foot){s.rob=0;toast('Atraco cancelado')}else{s.rob-=dt;
       if(s.rob<=0){const m=Math.round(rnd(300,900))*WX.snowMul;money+=m;P.ammo[2]+=6;P.rob++;if(P.life)P.life.rob++;s.cool=120;crime(2);scare(40);toast('+$'+m+(WX.snowMul>1?' · NIEVE x2':'')+' · atraco completado');
         if(P.rob==2){P.own[3]=1;P.ammo[3]=8;P.mag[3]=6;setTimeout(()=>toast('Botín: escopeta'),1600)}}}}
@@ -709,6 +715,10 @@ function step(dt){frame++;
     const dx=px-c.x,dz=pz-c.z,d=Math.hypot(dx,dz);
     if(d>1.7){c.x+=dx/d*6.3*dt;c.z+=dz/d*6.3*dt;collide(c,.5);anim(c.h,6.3,dt,0,0,gh(c.x,c.z))}else{anim(c.h,0,dt,0,0,gh(c.x,c.z));if(P.foot||speed<5)hurt(14*dt,'poli')}
     g.position.x=c.x;g.position.z=c.z;g.rotation.y=Math.atan2(dx,dz);if(d>140){c.x=px+Math.cos(1)*60;c.z=pz+Math.sin(1)*60}});
+  for(let i=copsDead.length-1;i>=0;i--){const k=copsDead[i],g=k.h.g,d2=(k.x-px)**2+(k.z-pz)**2;g.visible=d2<12500;
+    if(k.down>0){k.down-=dt;if(k.svx){k.x+=k.svx*dt;k.z+=k.svz*dt;k.svx*=Math.exp(-3*dt);k.svz*=Math.exp(-3*dt)}}
+    k.fall=Math.min(1,(k.fall||0)+dt*2.5);g.rotation.x=-PI/2*k.fall;g.position.set(k.x,gh(k.x,k.z)+(k.down>0?.25:0),k.z);
+    if(k.down<=0&&d2>15625){scene.remove(g);copsDead.splice(i,1)}}
   // Trafico
   for(const c of ai){if(c.off)continue;c.stun=Math.max(0,c.stun-dt);let ts=c.stun>0?0:c.base;const cx=c.g.position.x,cz=c.g.position.z;
   {const ck=Math.round(cx/CELL)+','+Math.round(cz/CELL);if(LX[ck]){const nx2=Math.round(cx/CELL)*CELL,nz2=Math.round(cz/CELL)*CELL,rel=(nx2-cx)*DX[c.dir]+(nz2-cz)*DZ[c.dir],lat=Math.abs((nx2-cx)*DZ[c.dir]-(nz2-cz)*DX[c.dir]),ax=DX[c.dir]!=0,gx=(Math.floor(performance.now()/8000)%2==0);if(rel>0&&rel<11&&lat<3.2&&((ax&&!gx)||(!ax&&gx)))ts=0}}
