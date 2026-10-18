@@ -304,8 +304,8 @@ function mkHotel(x,z,n){const w=26,d=16,fz=z+d/2,E=(g,m,y,zz)=>{const o=new THRE
   boxes.push({x:x,z:z-d/2+.35,hw:w/2,hd:.6},{x:x-w/2+.35,z:z,hw:.6,hd:d/2},{x:x+w/2-.35,z:z,hw:.6,hd:d/2},{x:x,z:z-2,hw:4,hd:.9});
   hotels.push({x,z:fz+2,name:n})}
 mkHotel(EXT+16,-60,'HOTEL MIRAMAR');mkHotel(EXT+16,120,'HOTEL BRISA');
-const acts={goles:0,botellas:0,graf:0,taxis:0,dineroTaxi:0,drift:0};let driftN=0,driftT=0,driftWas=0;
-function driftEnd(){if(driftN>=120){const pts=Math.round(driftN),cs=Math.round(pts/10);money+=cs;acts.drift+=pts;toast('¡Drift '+pts+' pts! +$'+cs);pop('+'+cs+' puntos por drift');[660,880].forEach((q,i)=>setTimeout(()=>beep(q,.09),i*110))}driftN=0;driftT=0}
+const acts={goles:0,botellas:0,graf:0,taxis:0,dineroTaxi:0,drift:0};let driftN=0,driftT=0,driftWas=0,driftGlz=0;
+function driftEnd(){if(driftN>=120){const pts=Math.round(driftN),cs=Math.round(pts/10);money+=cs;acts.drift+=pts;toast('¡Drift '+pts+' pts! +$'+cs);pop('+'+cs+' puntos por drift');[660,880].forEach((q,i)=>setTimeout(()=>beep(q,.09),i*110))}driftN=0;driftT=0;driftWas=0;driftGlz=0}
 const bottles=[],grafs=[],bars=[];
 function barTex(){const c=cv(128,40),x=c.getContext('2d');x.fillStyle='#10131f';x.fillRect(0,0,128,40);x.fillStyle='#ffd24a';x.font='bold 26px sans-serif';x.textAlign='center';x.fillText('BAR',64,29);return tex(c)}
 function mkBar(x,z){const E=(g,m,y,zz)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(...g),m);o.position.set(x,y,zz);scene.add(o);return o};
@@ -332,7 +332,7 @@ function pauseDraw(){for(let i=0;i<5;i++)$('pb'+i).classList.toggle('on',i==paus
  if(pauseTab==0)m.innerHTML=`<h3>${cm.n}</h3><div>Paso ${mis.s+1}/${cm.s.length}: ${cm.s[mis.s].t}</div><div>Dinero <b>$${money}</b> · Atracos ${P.rob} · Bajas ${P.kills}</div><div>Tiempo ${Math.floor((P.playt||0)/60)} min · Distancia ${Math.round(P.dist||0)} m</div><button class="big" onclick="pauseNav(0)">▶ Continuar</button>`;
  else if(pauseTab==2)m.innerHTML=`<h3>Opciones rápidas</h3><div>Calidad</div><div class="opt">${['baja','media','alta'].map(q=>`<button class="${q==CFG.q?'on':''}" onclick="pickQ('${q}');pauseDraw()">${q}</button>`).join('')}</div><div>Sonido</div><div class="opt">${[1,0].map(v=>`<button class="${v==CFG.snd?'on':''}" onclick="pickSnd(${v});pauseDraw()">${v?'Sí':'No'}</button>`).join('')}</div><div>Sombras</div><div class="opt">${[1,0].map(v=>`<button class="${v==CFG.sh?'on':''}" onclick="pickSh(${v});pauseDraw()">${v?'Sí':'No'}</button>`).join('')}</div><div>Sensibilidad (${CFG.sens.toFixed(1)}x)</div><input type="range" min="0.1" max="3" step="0.1" value="${CFG.sens}" oninput="pickS(parseFloat(this.value));pauseDraw()"><div>FOV (${CFG.fov})</div><input type="range" min="55" max="78" step="1" value="${CFG.fov}" oninput="pickFov(parseInt(this.value));pauseDraw()"><div style="opacity:.7;font-size:12px">Los cambios se aplican al continuar.</div>`;
  else m.innerHTML=`<h3>Ayuda</h3><div>WASD moverse · Shift correr · Espacio saltar · C agacharse<br>Clic/J atacar · Click-der apuntar · R recargar · 1-4 armas<br>E usar (atraco, balón, grafiti, BAR, puertas) · B tienda · H botiquín<br>F coche · T taxi · M mapa grande · X quitar marca · I inventario<br>Verde tienda · Naranja coches · Blanco hotel · Rosa puertas/club</div><div>Trucos por palabra: HESOYAM BAGUVIX FULLCLIP NUTTERTOOLS PROFESSIONALTOOLS AEZAKMI LEAVEMEALONE BRINGITON ROCKETMAN CPKTNWT CRAZYTOWN MONEYTALKS GHOSTTOWN</div><button class="big" onclick="pauseNav(0)">▶ Continuar</button>`}
-document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&started&&running&&!paused&&!inv.open&&!mapBig)setPause(true)});
+document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&started&&running&&!paused&&!inv.open&&!mapBig&&!(NC.wheel&&NC.wheel.open)&&!(NC.dlg&&NC.dlg.open))setPause(true)});
 function toggleMap(force){if(!running)return;mapBig=force!==undefined?force:!mapBig;const mm=$('mm');mm.width=mm.height=mapBig?300:150;$('mmw').classList.toggle('big',mapBig);if(mapBig){if(document.exitPointerLock)document.exitPointerLock();toast('Clic en el mapa para marcar · M cerrar · X borrar')}else if(cn.requestPointerLock&&!inv.open)cn.requestPointerLock()}
 $('mm').addEventListener('click',e=>{if(!mapBig||!running)return;e.stopPropagation();const r=$('mm').getBoundingClientRect(),S=$('mm').width,C=S/2,sc=.5,th=P.foot?cam.yaw:P.th,c=Math.cos(th),n=Math.sin(th),mx=(e.clientX-r.left)*(S/r.width),my=(e.clientY-r.top)*(S/r.height),dx=mx-C,dy=my-C,px=P.foot?P.fx:P.x,pz=P.foot?P.fz:P.z;wp={x:px+(-c*sc*dx+n*sc*dy)/(sc*sc),z:pz+(-n*sc*dx-c*sc*dy)/(sc*sc)};wpBeacon.position.set(wp.x,30,wp.z);wpBeacon.visible=true;beep(700,.08);$('wp').style.display='block'});
 const doors=[];
@@ -647,7 +647,7 @@ CHEATS.SUPERSTAR=()=>{P.hp=100;P.arm=100;P.own=[1,1,1,1];P.ammo[2]+=60;P.ammo[3]
 document.addEventListener('keydown',e=>{const k=e.code;konI=(k==KON[konI])?konI+1:(k==KON[0]?1:0);if(konI>=KON.length){konI=0;secretUnlock('Código Konami perfecto')}});
 addEventListener('keydown',e=>{keys[e.code]=1;const kc=e.code;
   if(/^Key[A-Z]$/.test(kc)&&started&&running&&!paused){cheatBuf+=kc[3];clearTimeout(cheatT);cheatT=setTimeout(()=>cheatBuf='',1500);const w=Object.keys(CHEATS).find(k=>cheatBuf.endsWith(k));if(w){cheatBuf='';try{CHEATS[w]()}catch(err){}}}if(/Arrow|Space|Tab/.test(e.code))e.preventDefault();if(!running)return;const c=e.code;
-  if(c=='KeyI'||c=='Tab'||(inv.open&&(c=='Escape'||c=='KeyB'))){inv.open=!inv.open;if(inv.open&&document.exitPointerLock)document.exitPointerLock();showInv();return}
+  if(c=='KeyI'||(inv.open&&(c=='Escape'||c=='KeyB'))){inv.open=!inv.open;if(inv.open&&document.exitPointerLock)document.exitPointerLock();showInv();return}
   if(c=='Escape'){if(!started)return;if(mapBig)toggleMap(false);else setPause(!paused);return}
   if(inv.open)return;
   if(c=='KeyF')toggleCar();else if(c=='KeyT')taxiTry();else if(c=='KeyR')startReload();else if(c=='KeyE')interact();else if(c=='KeyB'){const cs=nearCarShop(),s2=nearShop();if(cs){inv.open=true;inv.tab=4;if(document.exitPointerLock)document.exitPointerLock();showInv()}else if(s2){inv.open=true;inv.tab=3;if(document.exitPointerLock)document.exitPointerLock();showInv()}}else if(c=='KeyM')toggleMap();else if(c=='KeyX'){if(wp){wp=null;wpBeacon.visible=false;$('wp').style.display='none';toast('Marca borrada')}}else if(c=='KeyH')heal();else if(c=='KeyJ')fire();else if(/^Digit[1-4]$/.test(c))selW(+c[5]-1)});
@@ -684,8 +684,9 @@ function step(dt){frame++;
           if(e.act){e.x+=nx2*ps;e.z+=nz2*ps}else{e.ox=(e.ox||0)+nx2*ps*1.1;e.oz=(e.oz||0)+nz2*ps*1.1;e.flee=Math.max(e.flee||0,2.5)}}}}}
   if(speed>10)for(const e of npcs){if(e.down>0||e.off)continue;const dx=e.x-P.x,dz=e.z-P.z,d=Math.hypot(dx,dz);if(d<9&&d>2.4&&(P.vx*dx+P.vz*dz)/(d||1)>6)e.flee=Math.max(e.flee,6)}
   {const lt2=-P.vx*Math.cos(P.th)+P.vz*Math.sin(P.th);const DRG=speed>9&&Math.abs(lt2)>4.2;
-  if(DRG){driftT+=dt;driftN+=speed*Math.abs(lt2)*.55*dt;if(!driftWas){driftWas=1;beep(210,.3,'sawtooth',.03)}}
-  else{if(driftT>0&&(speed<5.5||Math.abs(lt2)<2.2))driftEnd();if(driftWas)driftWas=driftT>0?1:0}}
+  if(DRG){driftT+=dt;driftN+=speed*Math.abs(lt2)*.55*dt;if(!driftWas){driftWas=1;beep(210,.3,'sawtooth',.03)}driftGlz=1.1}
+  else if(driftT>0){driftGlz-=dt;if(driftGlz<=0)driftEnd()}
+  if(driftT>0&&speed<4.5)driftEnd()}
     P.cgy+=(gh(P.x,P.z)-P.cgy)*Math.min(1,14*dt);car.position.set(P.x,P.cgy,P.z);car.rotation.y=P.th;car.rotation.z=-vl*.006;px=P.x;pz=P.z;
   }else if(P.dying){dyingUpdate(dt);px=P.fx;pz=P.fz}else{
     if(keys.ArrowLeft)cam.yaw+=2*dt;if(keys.ArrowRight)cam.yaw-=2*dt;
@@ -857,16 +858,21 @@ function loop(t){requestAnimationFrame(loop);const dt=Math.min(.05,(t-last)/1000
   if(running&&!paused&&!P.busted){step(dt);acc+=dt;if(++fc==90){const a=acc/fc;if(a>.03&&pr>.6){pr-=.2;rs()}else if(a<.0175&&pr<1.25){pr=Math.min(1.25,pr+.15);rs()}acc=fc=0}}
   else{cam.yaw+=dt*.15;camera.position.set(Math.sin(cam.yaw)*30,10,Math.cos(cam.yaw)*30-30);camera.lookAt(0,4,-30);skyG.position.copy(camera.position);if(frame++%2==0)rd.shadowMap.needsUpdate=true}
   rd.render(scene,camera)}
-updAI();car.position.set(P.x,0,P.z);rd.shadowMap.needsUpdate=true;requestAnimationFrame(loop);
+updAI();car.position.set(P.x,P.foot?0:Math.max(-.9,P.cgy),P.z);rd.shadowMap.needsUpdate=true;requestAnimationFrame(loop);
 </script>
-<script src="src/core.js?v=7a"></script>
-<script src="src/doors.js?v=7a"></script>
-<script src="src/streets.js?v=7a"></script>
-<script src="src/usables.js?v=7a"></script>
-<script src="src/shops.js?v=7a"></script>
-<script src="src/house.js?v=7a"></script>
-<script src="src/detail.js?v=7a"></script>
-<script src="src/hud.js?v=7a"></script>
-<script src="src/audio.js?v=7a"></script>
-<script src="src/missions.js?v=7a"></script>
+<script src="src/core.js?v=9a"></script>
+<script src="src/doors.js?v=9a"></script>
+<script src="src/streets.js?v=9a"></script>
+<script src="src/usables.js?v=9a"></script>
+<script src="src/shops.js?v=9a"></script>
+<script src="src/house.js?v=9a"></script>
+<script src="src/detail.js?v=9a"></script>
+<script src="src/hud.js?v=9a"></script>
+<script src="src/audio.js?v=9a"></script>
+<script src="src/missions.js?v=9a"></script>
+<script src="src/wheel.js?v=9a"></script>
+<script src="src/map.js?v=9a"></script>
+<script src="src/roomdoor.js?v=9a"></script>
+<script src="src/story.js?v=9a"></script>
+<script src="src/boot.js?v=9a"></script>
 </body></html>

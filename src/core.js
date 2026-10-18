@@ -14,12 +14,8 @@
     }
   };
   try {
-    // envoltorio del paso principal: conecta los hooks de los modulos
-    if (!NC.__wrapped) {
-      NC.__wrapped = true;
-      const _step = window.step;
-      window.step = function (dt) { NC.run('pre', dt); _step(dt); NC.run('post', dt); };
-    }
+    // el envoltorio del paso principal lo hace boot.js al final (ultima declaracion gana)
+    NC.__wrapped = true;
   } catch (e) { }
   try {
     // paso rasterizado de nitidez maxima para texturas canvas (calles/edificios)
