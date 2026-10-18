@@ -19,12 +19,12 @@
   function mkDoor(side) {
     const pv = new THREE.Group();
     pv.position.set(side * .985, .52, .62);
-    const panel = new THREE.Mesh(new THREE.BoxGeometry(.08, .62, 1.42), doorMat);
-    panel.position.set(0, .24, -.8); panel.castShadow = true; pv.add(panel);
-    const win = new THREE.Mesh(new THREE.BoxGeometry(.05, .3, 1.0), winMat);
-    win.position.set(0, .68, -.74); pv.add(win);
+    const panel = new THREE.Mesh(new THREE.BoxGeometry(.08, .5, 1.45), doorMat);
+    panel.position.set(0, .09, -.795); panel.castShadow = true; pv.add(panel);
+    const win = new THREE.Mesh(new THREE.BoxGeometry(.05, .44, 1.05), winMat);
+    win.position.set(side * -.19, .6, -.85); pv.add(win);
     const hd = new THREE.Mesh(new THREE.BoxGeometry(.06, .05, .2), hkMat);
-    hd.position.set(side * .07, .46, -.12); pv.add(hd);
+    hd.position.set(side * .07, .16, -.72); pv.add(hd);
     car.add(pv);
     return pv;
   }

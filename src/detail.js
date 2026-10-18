@@ -7,6 +7,19 @@
 
   const D = new THREE.Object3D();
 
+  // ---------- lavado de luz uniforme: aclara por igual asfalto y aceras (las intersecciones ya no van a negro) ----------
+  try {
+    const wash = new THREE.Mesh(new THREE.PlaneGeometry(2 * EXT - 16, 2 * EXT - 16), new THREE.MeshBasicMaterial({ color: 0x9fb0c8, transparent: true, opacity: .05, blending: THREE.AdditiveBlending, depthWrite: false }));
+    wash.rotation.x = -PI / 2; wash.position.set(0, .052, 0); scene.add(wash);
+    const _ps = window.paintSky;
+    if (typeof _ps === 'function') window.paintSky = function () {
+      const r = _ps.apply(this, arguments);
+      try { const nite = (WX.t > .8 || WX.t < .18) ? 1 : (WX.t > .68 && WX.t < .8) ? .6 : 0; wash.material.opacity = .05 + nite * .09; } catch (e) { }
+      return r;
+    };
+    try { paintSky(); } catch (e) { }
+  } catch (e) { NC.log('detail: lavado de luz', e); }
+
   // ---------- bordillos (sin colision: el paso lo resuelve gh()) ----------
   try {
     const C = [];
