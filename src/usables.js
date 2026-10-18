@@ -97,24 +97,46 @@
     shelf(x, 1.37, z + 1.05, shops.length, K.stock.slice(0, 3));   // sobre el mostrador
     shelf(x, 1.86, z + 1.55, shops.length, K.stock.slice(3));      // sobre la tarima
     // vendedor
-    const h = mkHuman(K.c, 0x333344); h.g.position.set(x - 1.6, 0, z - 1.2);
+    const h = mkHuman(K.c, 0x333344); h.g.position.set(x - 1.6, Y0 + .03, z - 1.2);
+    // cajas al fondo: sellan la cabina y la ucharan de almacenaje
+    const cm2 = new THREE.MeshStandardMaterial({ color: 0xb08a5a, roughness: .85 });
+    [[-2.1, -2.05, .62, Y0 + .31], [2.05, -1.9, .72, Y0 + .36], [-2.05, -1.15, .52, Y0 + .26]].forEach(q => {
+      const b = new THREE.Mesh(new THREE.BoxGeometry(q[2], q[2], q[2]), cm2);
+      b.position.set(x + q[0], q[3], z + q[1]); b.castShadow = true; scene.add(b);
+    });
+    shelvesBoxes(x, z);
     // colisiones
     boxes.push({ x: x, z: z - 1.9, hw: 2.8, hd: .35 }, { x: x, z: z + .9, hw: 2.2, hd: .4 }, { x: x - 2.8, z: z, hw: .35, hd: 2.1 }, { x: x + 2.8, z: z, hw: .35, hd: 2.1 });
-    shops.push({ h, x, z: z + 2.3, rob: 0, cool: 0, down: 0, shop: 1, name: K.t, type: K.t.split(' ')[0], stock: K.stock.slice(), mult: .95 });
+    boxes.push({ x: x - 2.1, z: z - 2.05, hw: .35, hd: .35 }, { x: x + 2.05, z: z - 1.9, hw: .4, hd: .4 }, { x: x - 2.05, z: z - 1.15, hw: .3, hd: .3 });
+    shops.push({ h, x, z: z + 2.3, tx: x - 1.6, tz: z - 1.2, rob: 0, cool: 0, down: 0, shop: 1, name: K.t, type: K.t.split(' ')[0], stock: K.stock.slice(), mult: .95 });
+  }
+
+  // estanteria alta del fondo del kiosco con mercancia
+  function shelvesBoxes(x, z) {
+    const bm = new THREE.MeshStandardMaterial({ color: 0x5a4a36, roughness: .8 });
+    const b = new THREE.Mesh(new THREE.BoxGeometry(4.6, .08, .55), bm);
+    b.position.set(x, Y0 + 1.62, z - 1.72); b.castShadow = true; scene.add(b);
+    for (let i = 0; i < 5; i++) {
+      const c = pick([0xd8d3e8, 0xe8d9c2, 0xcfe8dd, 0xe8cfd9]);
+      const it = new THREE.Mesh(new THREE.BoxGeometry(.34, .3, .3), new THREE.MeshStandardMaterial({ color: c, roughness: .6 }));
+      it.position.set(x - 1.8 + i * .9, Y0 + 1.82, z - 1.72); scene.add(it);
+    }
   }
 
   // ================= PRODUCTOS DENTRO DE LAS TIENDAS EXISTENTES =================
+  // mesas pegadas a las paredes laterales: dejan el centro del comercio libre para entrar
   shops.slice(0, BASE_SHOPS).forEach((s, si) => {
+    const zT = s.z - 5.5;                       // frente del local, zona publica (s.z-7.6 = centro)
     const mkTable = (xx) => {
       const o = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.0, 1.2), new THREE.MeshStandardMaterial({ color: 0x6b4a32, roughness: .8 }));
-      o.position.set(xx, Y0 + .5, s.z - 2.6); o.castShadow = true; o.receiveShadow = true; scene.add(o);
-      boxes.push({ x: xx, z: s.z - 2.6, hw: 1.8, hd: .6 });
+      o.position.set(xx, Y0 + .5, zT); o.castShadow = true; o.receiveShadow = true; scene.add(o);
+      boxes.push({ x: xx, z: zT, hw: 1.8, hd: .6 });
     };
     const stockA = s.stock.slice(0, 3), stockB = s.stock.length > 3 ? s.stock.slice(3, 6) : s.stock.slice(0, 3);
-    mkTable(s.x - 3.0, Y0);
-    mkTable(s.x + 3.0, Y0);
-    shelf(s.x - 3.0, Y0 + 1.05, s.z - 2.6, si, stockA);
-    shelf(s.x + 3.0, Y0 + 1.05, s.z - 2.6, si, stockB);
+    mkTable(s.x - 5.6, Y0);
+    mkTable(s.x + 5.6, Y0);
+    shelf(s.x - 5.6, Y0 + 1.05, zT, si, stockA);
+    shelf(s.x + 5.6, Y0 + 1.05, zT, si, stockB);
   });
 
   // ================= VISTA PREVIA AL PASAR EL CURSOR =================
