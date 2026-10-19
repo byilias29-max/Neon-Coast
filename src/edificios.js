@@ -106,13 +106,19 @@
         G.wood.push(awm);
         // cartel
         G.light.push(face(aw * .8, .8, .18, .12, 4.35, pick(['#ff5a7a', '#27e6ff', '#ffd24a', '#3dff9a', '#ff8a3a'])));
-        // escaparate y puerta
-        G.glass.push(face(aw * .75, 2.1, .1, .06, 1.5, '#8fd0e8'));
-        G.wood.push(face(1.1, 2.2, .16, .14, 1.1, '#4a3524'));
-        // escalón
-        G.plaster.push(face(aw * .8, .12, .8, .45, .07, '#8a857c'));
-        // luz de escaparate
-        G.light.push(face(aw * .6, .1, .3, .35, 3.1, '#ffe0a8'));
+        // escaparate y puerta (centradas en la fachada) con marco, umbral y luminaria
+        G.glass.push(face(aw * .75, 2.1, .1, .1, 1.5, '#8fd0e8'));
+        // marco de la puerta: dos montantes + dintel, ligeramente salientes
+        G.plaster.push(face(.22, 2.5, .3, .12, 1.25, pick(acc)));
+        G.plaster.push(face(.22, 2.5, .3, .12, 1.25, pick(acc)));
+        G.plaster.push(face(1.6, .28, .32, .12, 2.5, pick(acc)));
+        G.wood.push(face(1.1, 2.2, .16, .22, 1.1, '#4a3524'));
+        // escalón / umbral
+        G.plaster.push(face(1.7, .16, .9, .5, .08, '#8a857c'));
+        // luminaria sobre la puerta: cuerpo, pantalla y halo, centrada y pegada a la fachada
+        G.metal.push(face(.5, .18, .34, .2, 2.85, '#2f3440'));
+        G.light.push(face(.34, .07, .12, .34, 2.78, '#ffe0a8'));
+        G.light.push(face(aw * .6, .1, .3, .14, 3.1, '#ffe0a8'));
       } else {
         // residential: balcón, buzón, planta
         if (h > 6) {
