@@ -151,6 +151,7 @@
 
   // ---------- dialogo ----------
   function dlg(who, txt, opts) {
+    if (!Array.isArray(opts)) opts = [{ t: 'Continuar', f: (typeof opts === 'function' ? opts : null) }];
     $('mWho').textContent = who;
     $('mTxtD').innerHTML = txt;
     $('mOpts').innerHTML = opts.map((o, i) => `<div class="opt" data-i="${i}">${o.t}</div>`).join('');
@@ -260,16 +261,16 @@
         }
         // 5) nota
         if (M.ph === 4 && Math.hypot(px - OFFICE.x, pz - OFFICE.z) < 4) { notePanel(); return; }
-        // 6) caja
-        if ((M.ph === 5 || M.ph === 6) && Math.hypot(px - (OFFICE.x + 2.4), pz - (OFFICE.z - 1.2)) < 2.6) { keypad(); return; }
-        // 7) paquete
-        if (M.ph === 6 && M.safeOpen && pack.visible && Math.hypot(px - pack.position.x, pz - pack.position.z) < 2) {
+        // 7) paquete (antes que la caja: si esta abierta, el paquete es lo que se coge)
+        if (M.ph === 6 && M.safeOpen && pack.visible && Math.hypot(px - pack.position.x, pz - pack.position.z) < 2.2) {
           M.pkg = true; pack.visible = false; packGlow.visible = false;
           try { P.pkg = 1; } catch (e) { }
           toast('Paquete en tus manos');
           setPhase(7);
           return;
         }
+        // 6) caja
+        if (!M.safeOpen && (M.ph === 5 || M.ph === 6) && Math.hypot(px - (OFFICE.x + 2.4), pz - (OFFICE.z - 1.2)) < 2.6) { keypad(); return; }
       }
     } catch (e) { }
     return _int && _int.apply(this, arguments);
