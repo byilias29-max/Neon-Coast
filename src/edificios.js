@@ -52,10 +52,18 @@
 
   // ---------- por edificio ----------
   let nDet = 0;
+  // edificios que YA tienen su propio portal (comercios, concesionarios, hoteles):
+  // a esos no se les pone cristal ni puerta, o el escaparate real quedaria tapado
+  const conPortal = [];
+  try { shops.forEach(s => conPortal.push({ x: s.x, z: s.z - 7.6, r: 11 })); } catch (e) { }
+  try { carShops.forEach(s => conPortal.push({ x: s.x - 5, z: s.z - 9, r: 13 })); } catch (e) { }
+  try { hotels.forEach(s => conPortal.push({ x: s.x, z: s.z - 10, r: 15 })); } catch (e) { }
+  const tienePortal = (x, z) => conPortal.some(p => Math.hypot(p.x - x, p.z - z) < p.r);
   try {
     for (const b of BLD) {
       const acc = ZONE_ACC[b.zn] || ZONE_ACC[1];
       const h = b.h, w = b.w, d = b.d;
+      const portal = tienePortal(b.x, b.z);
       // cara que da a la calle mas cercana
       const nearX = Math.round(b.x / CELL) * CELL, nearZ = Math.round(b.z / CELL) * CELL;
       const dx = nearX - b.x, dz = nearZ - b.z;
@@ -84,7 +92,10 @@
         return col(g, c).translate(px, y, pz);
       };
       // planta baja: escaparate con toldo y rotulo
-      if (Math.random() < .78) {
+      if (portal) {
+        // el comercio tiene su propio acceso: solo remates, nada de cristal encima
+        G.plaster.push(col(box(alongX ? fw : .3, .3, alongX ? .3 : fw, fx, h - .55, fz), pick(acc)));
+      } else if (Math.random() < .78) {
         const aw = Math.min(fw * .7, 7);
         // toldo inclinado (cae hacia la calle)
         const awg = alongX ? new T.BoxGeometry(1.6, .16, aw) : new T.BoxGeometry(aw, .16, 1.6);

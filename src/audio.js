@@ -4,6 +4,16 @@
   if (!window.NC) return;
   NC.log('audio: ambiente');
 
+  // ---------- API de silencio centralizado (pausa) ----------
+  NC.audio = {
+    get context() { return ac; },
+    // suspende TODO el contexto: se paran lluvia, viento, mar, motor ytruenos de golpe
+    silence() { try { if (ac && ac.state === 'running') ac.suspend(); } catch (e) { } },
+    // reanuda sin tocar los niveles: no se duplica ninguna pista
+    resume() { try { if (ac && ac.state === 'suspended') ac.resume(); } catch (e) { } },
+    isSilent() { try { return !ac || ac.state === 'suspended'; } catch (e) { return true; } }
+  };
+
   let ac = null, master = null;
   let rainG = null, windG = null, seaG = null, engOsc = null, engG = null, engFlt = null;
   let nextThunder = 0;

@@ -54,7 +54,7 @@
       let ms = null;
       try { ms = curM().s[mis.s]; } catch (e) { }
       if (ms && ms.g) {
-        const needE = /^(Recoge|Entrega)/.test(ms.t || '');
+        const needE = /^(Recoge|Entrega|Entra|Habla)/.test(ms.t || '');
         if (needE) {
           const px = P.foot ? P.fx : P.x, pz = P.foot ? P.fz : P.z;
           if (Math.hypot(tgt.x - px, tgt.z - pz) > 9) { _adv(); return; }
@@ -80,7 +80,7 @@
       if (running && curM().s[mis.s] && curM().s[mis.s].g && tgt.on) {
         const ms = curM().s[mis.s];
         const px = P.foot ? P.fx : P.x, pz = P.foot ? P.fz : P.z;
-        show = /^(Recoge|Entrega)/.test(ms.t || '') && Math.hypot(tgt.x - px, tgt.z - pz) < 9;
+        show = /^(Recoge|Entrega|Entra|Habla)/.test(ms.t || '') && Math.hypot(tgt.x - px, tgt.z - pz) < 9;
       }
     } catch (e) { }
     el.style.display = show ? 'flex' : 'none';
