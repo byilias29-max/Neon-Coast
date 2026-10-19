@@ -1,4 +1,4 @@
-/* Neon Coast - decorado.js
+﻿/* Neon Coast - decorado.js
    Mobiliario urbano procedural detallado.
    Busca el tag ?v=9f en index.html al editar este archivo. */
 (function () {
@@ -244,7 +244,7 @@
     add('metal', box(.1, .2, .4, x - .2, y + .7, z, 10)); // Salida
   }
 
-  // Señal de trafico
+  // SeÃ±al de trafico
   function DC_trafficSign(x, z, rotY = 0, type = 'stop') {
     const y = 2.0;
     add('metal', cyl(.08, .08, 3.0, x, y - 1.5, z, 8)); // Poste
@@ -252,7 +252,7 @@
       const sign = new T.BoxGeometry(1.0, 1.0, .05);
       sign.translate(x, y, z);
       pc(sign, DC_RED);
-      // Texto "STOP" con una pequeña textura
+      // Texto "STOP" con una pequeÃ±a textura
       const stopC = DC_mkc(64, 64, (ctx) => {
         ctx.fillStyle = 'white'; ctx.fillRect(0, 0, 64, 64);
         ctx.font = 'bold 40px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -357,6 +357,9 @@
         const r = rnum(3, 15); // Radio dentro de la manzana
         const px = cx + Math.cos(a) * r;
         const pz = cz + Math.sin(a) * r;
+      // nunca sobre el asfalto: la calzada ocupa +-R/2 de cada eje de celula
+      const dRoadX = Math.abs(px - Math.round(px / CELLv) * CELLv), dRoadZ = Math.abs(pz - Math.round(pz / CELLv) * CELLv);
+      if (dRoadX < Rv / 2 + 2.5 || dRoadZ < Rv / 2 + 2.5) continue;
         const rotY = Math.random() * PI * 2;
         const scale = rnum(0.8, 1.2);
 

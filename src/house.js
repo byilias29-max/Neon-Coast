@@ -19,27 +19,27 @@
   const WM = new THREE.MeshStandardMaterial({ color: 0x5a4232, roughness: .8 });
   const MD = new THREE.MeshStandardMaterial({ color: 0x6b4a32, roughness: .75 });
   const wardrobe = new THREE.Mesh(new THREE.BoxGeometry(.7, 2.3, 1.7), WM);
-  wardrobe.position.set(RC.x + 6.9, 1.45, RC.z - 3.2); wardrobe.castShadow = true; scene.add(wardrobe);
+  wardrobe.position.set(RC.x + 5.3, 1.45, RC.z - 3.2); wardrobe.castShadow = true; scene.add(wardrobe);
   const knob = new THREE.Mesh(new THREE.SphereGeometry(.04, 6, 5), new THREE.MeshStandardMaterial({ color: 0xd8c890, metalness: .8, roughness: .3 }));
-  knob.position.set(RC.x + 6.5, 1.35, RC.z - 3.5); scene.add(knob);
-  boxes.push({ x: RC.x + 6.9, z: RC.z - 3.2, hw: .4, hd: .9 });
+  knob.position.set(RC.x + 4.9, 1.35, RC.z - 3.5); scene.add(knob);
+  boxes.push({ x: RC.x + 5.3, z: RC.z - 3.2, hw: .4, hd: .9 });
 
   const desk = new THREE.Mesh(new THREE.BoxGeometry(1.5, .86, .95), MD);
-  desk.position.set(RC.x - 6.8, .73, RC.z + 2.2); desk.castShadow = true; desk.receiveShadow = true; scene.add(desk);
+  desk.position.set(RC.x - 5.8, .73, RC.z + 2.2); desk.castShadow = true; desk.receiveShadow = true; scene.add(desk);
   const lamp = new THREE.Mesh(new THREE.CylinderGeometry(.02, .03, .38, 6), new THREE.MeshStandardMaterial({ color: 0x2a2a33 }));
-  lamp.position.set(RC.x - 7.1, 1.32, RC.z + 2.5); scene.add(lamp);
+  lamp.position.set(RC.x - 6.1, 1.32, RC.z + 2.5); scene.add(lamp);
   const bulb = new THREE.Mesh(new THREE.SphereGeometry(.07, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffd24a }));
-  bulb.position.set(RC.x - 7.1, 1.5, RC.z + 2.5); scene.add(bulb);
+  bulb.position.set(RC.x - 6.1, 1.5, RC.z + 2.5); scene.add(bulb);
   const paper = new THREE.Mesh(new THREE.PlaneGeometry(.5, .36), new THREE.MeshBasicMaterial({ color: 0xf2ede2 }));
-  paper.rotation.x = -PI / 2 + .25; paper.position.set(RC.x - 6.6, 1.18, RC.z + 2.1); scene.add(paper);
-  boxes.push({ x: RC.x - 6.8, z: RC.z + 2.2, hw: .8, hd: .5 });
+  paper.rotation.x = -PI / 2 + .25; paper.position.set(RC.x - 5.6, 1.18, RC.z + 2.1); scene.add(paper);
+  boxes.push({ x: RC.x - 5.8, z: RC.z + 2.2, hw: .8, hd: .5 });
 
   const pot = new THREE.Mesh(new THREE.CylinderGeometry(.3, .24, .55, 8), new THREE.MeshStandardMaterial({ color: 0x8a4a3a, roughness: .9 }));
-  pot.position.set(RC.x + 6.6, .68, RC.z + 3.8); scene.add(pot);
+  pot.position.set(RC.x + 5.1, .68, RC.z + 3.8); scene.add(pot);
   const leafs = [];
-  for (let i = 0; i < 5; i++) leafs.push(cg(new THREE.SphereGeometry(rnd(.28, .45), 7, 5).translate(RC.x + 6.6, 1.35 + rnd(0, .5), RC.z + 3.8 + rnd(-.35, .35)), pick([0x2f9a52, 0x3fae5a])));
+  for (let i = 0; i < 5; i++) leafs.push(cg(new THREE.SphereGeometry(rnd(.28, .45), 7, 5).translate(RC.x + 5.1, 1.35 + rnd(0, .5), RC.z + 3.8 + rnd(-.35, .35)), pick([0x2f9a52, 0x3fae5a])));
   scene.add(new THREE.Mesh(merge(leafs), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .9 })));
-  boxes.push({ x: RC.x + 6.6, z: RC.z + 3.8, hw: .3, hd: .3 });
+  boxes.push({ x: RC.x + 5.1, z: RC.z + 3.8, hw: .3, hd: .3 });
 
   const pool = new THREE.Mesh(new THREE.PlaneGeometry(13, 11), new THREE.MeshBasicMaterial({ map: glowT, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: .22 }));
   pool.rotation.x = -PI / 2; pool.position.set(RC.x, .45, RC.z - .5); scene.add(pool);
