@@ -10,7 +10,7 @@
   const WET = { v: 0, target: 0 };
 
   // ---------- 1) lluvia fina: LineSegments (gotas finas, no bolas) ----------
-  const N = 2200, drops = new Float32Array(N * 6);
+  const N = 2600, drops = new Float32Array(N * 6);
   const rainGeo = new T.BufferGeometry();
   rainGeo.setAttribute('position', new T.BufferAttribute(drops, 3));
   const rainMat = new T.LineBasicMaterial({ color: 0xd6e8ff, transparent: true, opacity: .42, depthWrite: false, fog: true });
@@ -21,7 +21,7 @@
     const cam = camera.position;
     for (let i = 0; i < N; i++) {
       const k = i * 6;
-      const x = cam.x + R2(-42, 42), y = cam.y + R2(-6, 42), z = cam.z + R2(-42, 42);
+      const x = cam.x + R2(-28, 28), y = cam.y + R2(-6, 38), z = cam.z + R2(-28, 28);
       drops[k] = x; drops[k + 1] = y; drops[k + 2] = z;
       drops[k + 3] = x; drops[k + 4] = y - rainLen; drops[k + 5] = z;
     }
@@ -102,6 +102,22 @@
     } catch (e) { }
   };
 
+  // el paintSky del motor pone rugosidad/metalness "de lluvia" (0.06/0.3) que hacen
+  // que el asfalto refleje el entorno como un espejo magenta: aqui se corrige
+  const _paint = window.paintSky;
+  window.paintSky = function () {
+    try { _paint && _paint(); } catch (e) { }
+    const w = WET.target;
+    if (rmat0) {
+      rmat.color.copy(rmat0.c).multiplyScalar(1 - .30 * w);
+      rmat.color.lerp(new T.Color(0x20242e), .18 * w);
+      rmat.roughness = rmat0.r * (1 - w) + .22 * w;
+      rmat.metalness = rmat0.m + .04 * w;
+      rmat.envMapIntensity = (rmat0.e || .75) * (1 + .1 * w);
+    }
+    try { if (typeof pool !== 'undefined' && pool && pool.material) pool.material.opacity = Math.min(pool.material.opacity, .16 + .08 * w); } catch (e) { }
+  };
+
   // ---------- 7) actualizacion por frame ----------
   NC.hooks.pre.push(dt => {
     // transicion suave de humedad
@@ -143,14 +159,17 @@
     // materiales mojados
     if (rmat0) {
       rmat.color.copy(rmat0.c).multiplyScalar(1 - .34 * w);
+      rmat.color.lerp(new T.Color(0x1a2230), .25 * w);      // el asfalto mojado tira a azul, no a magenta
       rmat.roughness = rmat0.r * (1 - w) + .14 * w;
       rmat.metalness = rmat0.m + .08 * w;
-      rmat.envMapIntensity = (rmat0.e || .75) * (1 + .35 * w);
+      rmat.envMapIntensity = (rmat0.e || .75) * (1 + .2 * w);
     }
+    // los charcos de farola del motor no deben saturar la escena
+    try { if (typeof pool !== 'undefined' && pool && pool.material) pool.material.opacity = Math.min(pool.material.opacity, .16 + .1 * w); } catch (e) { }
     if (g0 && gndMat) { gndMat.color.copy(g0.c).multiplyScalar(1 - .22 * w); gndMat.roughness = g0.r * (1 - w) + .2 * w; }
     if (s0 && slabMat) { slabMat.color.copy(s0.c).multiplyScalar(1 - .2 * w); slabMat.roughness = s0.r * (1 - w) + .18 * w; }
     // reflejos de farolas
-    reflM.opacity = .34 * w;
+    reflM.opacity = .17 * w;
     for (const m of reflG) m.visible = w > .04;
     // charcos
     puddleM.opacity = .55 * w;

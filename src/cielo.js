@@ -98,5 +98,26 @@
     } catch (e) { }
   };
   try { window.paintSky(); } catch (e) { }
-  NC.log('cielo: paletas, horizonte, estrellas y luna listos');
+  // ---------- 5) el entorno PMREM se regenera con el cielo actual ----------
+  // (si no, el asfalto mojado refleja el atardecer de la carga y queda magenta de noche)
+  let pm = null, envT = 0, lastSunI = -1;
+  function refreshEnv() {
+    try {
+      if (!pm) pm = new T.PMREMGenerator(rd);
+      const es = new T.Scene();
+      const dome = skyG.children[0].clone(); es.add(dome);
+      if (typeof sun !== 'undefined' && sun.visible) es.add(sun.clone());
+      const t = pm.fromScene(es, 0, 1, 1500).texture;
+      const old = scene.environment;
+      scene.environment = t;
+      if (old && old.dispose) old.dispose();
+    } catch (e) { }
+  }
+  NC.hooks.post.push(dt => {
+    envT += dt;
+    const k = skyAt(WX.t);
+    if (envT > 2.5 && Math.abs(k.sunI - lastSunI) > .05) { lastSunI = k.sunI; envT = 0; refreshEnv(); }
+  });
+
+  NC.log('cielo: paletas, horizonte, estrellas, luna y entorno dinamico listos');
 })();

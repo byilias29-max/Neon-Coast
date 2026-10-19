@@ -202,9 +202,8 @@
   // 1) palmeras existentes -> las reconstruimos con mejor geometria
   const oldPalmSpots = [];
   try { palms.forEach(p => oldPalmSpots.push([p[0], p[1]])); } catch (e) { }
-  // 2) avenida de palmeras de la playa (el codigo de districts.js era muerto)
+  // 2) avenida de palmeras: districts.js ya las anade a 'palms' (ahora si se instancian aqui)
   try { for (let z = -380; z <= 380; z += 40) if (Math.abs(z) > 62) oldPalmSpots.push([EXT + 34, z]); } catch (e) { }
-  try { for (let x = 430; x <= 452; x += 13) { oldPalmSpots.push([x, 188]); oldPalmSpots.push([x, 220]); } } catch (e) { }
   oldPalmSpots.forEach(p => { if (free(p[0], p[1], 1.5, true)) lists.palm.push(p); });
 
   // 3) parque central: arboles densos conPaths
@@ -291,9 +290,11 @@
   // ---------- apagar las palmeras antiguas (geometria pobre) ----------
   try {
     scene.traverse(o => {
-      if (o.isInstancedMesh && (o.count === (typeof palms !== 'undefined' ? palms.length : -1) || o.count === (typeof palms !== 'undefined' ? palms.length * 8 : -1))) {
-        if (o.material && (o.material.color && (o.material.color.getHex() === 0x6b4a32 || o.material.map))) { o.visible = false; }
-      }
+      if (!o.isInstancedMesh || !o.geometry || !o.geometry.parameters) return;
+      const p = o.geometry.parameters;
+      // tronco viejo: cilindro .22/.44 x 8   ·  frondas: plano 1x10
+      if (p.radiusTop === .22 && p.radiusBottom === .44 && p.height === 8) o.visible = false;
+      if (p.widthSegments === 1 && p.heightSegments === 10 && p.width === 1) o.visible = false;
     });
   } catch (e) { }
 

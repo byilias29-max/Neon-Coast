@@ -93,6 +93,7 @@
     { id: 'alcaide', n: 'Sgto. Alcaide', job: 'sargento del puerto', sh: 0x1e3a8a, pa: 0x172554, ha: 0x555555, hat: 1, at: () => PORT.pos, vis: () => S.ch >= 5 || S.done },
     { id: 'ficha', n: 'Ficha', job: 'cobra deudas del puerto', sh: 0x2e2e2e, pa: 0x14141e, ha: 0x140d0b, hat: 0, at: () => PORT.pos2, vis: () => S.ch >= 5 && S.ch <= 8 && !S.fichaOut }
   ];
+  try { if (window.NC && NC.sto) NC.sto.cast = CAST; } catch (e) { }
   function unstick(p) { // saca un punto de cajas solidas (edificios, mobiliario)
     try {
       for (const b of boxes) {
