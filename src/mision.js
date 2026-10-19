@@ -11,7 +11,8 @@
   // ---------- estado ----------
   const M = {
     on: false, ph: 0, done: false, code: '', gotNote: false, pkg: false,
-    hostiles: [], safeOpen: false, talk: 0, tried: 0, t0: 0, failed: false
+    hostiles: [], safeOpen: false, talk: 0, tried: 0, t0: 0, failed: false,
+    cine: {}, cineV: {}                       // banderas de las escenas vistas/saltadas
   };
   const PH_TXT = [
     'Habla con Rita Vidal en el muelle de Colina.',
@@ -83,6 +84,7 @@
   const rita = { h: mkHuman(0x2f6f8a, 0x2a2a36, 0x3a2418, 0), x: SPOT.x, z: SPOT.z };
   rita.h.g.position.set(rita.x, 0, rita.z);
   scene.add(rita.h.g);
+  M.rita = rita;                             // la cinematica la coloca en poses fijas
   try { boxes.push({ x: rita.x, z: rita.z, hw: .4, hd: .4 }); } catch (e) { }
 
   // ---------- decorado: nave, nota, caja, paquete, carteles ----------
@@ -135,6 +137,7 @@
   pack.position.set(OFFICE.x + 1.3, 0, OFFICE.z - 1.1); pack.visible = false; scene.add(pack);
   const packGlow = new T.Mesh(new T.RingGeometry(.5, .62, 20).rotateX(-PI / 2), new T.MeshBasicMaterial({ color: 0xffd24a, transparent: true, opacity: .55 }));
   packGlow.position.set(pack.position.x, .02, pack.position.z); packGlow.visible = false; scene.add(packGlow);
+  M.safe = { door: door, pack: pack, glow: packGlow, box: safe };   // para el primer plano de la caja
 
   // ---------- hostiles ----------
   function spawnHostiles() {
@@ -206,6 +209,20 @@
     try { if (document.exitPointerLock) document.exitPointerLock(); } catch (e) { }
   }
 
+  // ---------- cinematicas (motor en src/cine.js) ----------
+  // La escena solo atmosferiza: el estado de la mision ya queda registrado ANTES de
+  // reproducirla, asi que saltarla (Esc) no cambia nada y la mision sigue completable.
+  function cine(which) {
+    try {
+      if (!NC.cine || !NC.cine.play || !NC.cine.seqs || !NC.cine.seqs[which]) return;
+      if (M.cine[which]) return;
+      M.cine[which] = 1;                                  // acontecimiento registrado
+      const seq = NC.cine.seqs[which]();
+      if (!seq) return;
+      NC.cine.play(seq, saltada => { M.cineV[which] = saltada ? 2 : 1; });
+    } catch (e) { }
+  }
+
   // ---------- fases ----------
   function setPhase(p) {
     M.ph = p;
@@ -213,6 +230,9 @@
     $('mSub').textContent = p >= 5 && !M.gotNote ? 'Pista: número de nave + año del incendio' : '';
     $('mPh').innerHTML = PH_TXT.map((_, i) => `<i class="${i < p ? 'ok' : (i === p ? 'now' : '')}"></i>`).join('');
     if (p === 3) spawnHostiles();
+    if (p === 1) cine('rita');            // Rita se queda mirando el puerto
+    if (p === 3) cine('hostiles');        // los dos matones en la puerta de la nave
+    if (p === 6) cine('caja');            // la caja fuerte y el paquete
     if (p === 4) { }
   }
   function startMission() {
@@ -279,6 +299,7 @@
   // ---------- logica por frame ----------
   NC.hooks.post.push(dt => {
     if (!M.on || M.done) return;
+    if (NC.cine && NC.cine.on) return;      // durante una escena la mision queda congelada
     const px = P.foot ? P.fx : P.x, pz = P.foot ? P.fz : P.z;
     // hostiles: persiguen y golpean
     for (const n of M.hostiles) {

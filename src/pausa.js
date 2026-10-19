@@ -116,7 +116,66 @@
     } catch (e) { }
   });
 
+  // ---------- red de seguridad anti-softlock ----------
+  // si una cinematica (o cualquier otra cosa) dejara el tiempo a 0 sin que haya ninguna
+  // escena activa, el jugador se quedaria sin poder moverse: lo restauramos.
+  let guard = 0;
+  NC.hooks.post.push(() => {
+    if ((guard++ % 30) !== 0) return;
+    try {
+      if (typeof timeScale === 'undefined' || timeScale !== 0) return;
+      if (typeof running === 'undefined' || !running) return;
+      if (typeof paused !== 'undefined' && paused) return;
+      if (window.INTRO_ && INTRO_.on) return;                 // la intro congela a proposito
+      if (document.body.classList.contains('ncCineOn')) return;   // una escena esta en curso
+      if (window.NC && NC.cine && NC.cine.on) return;         // por si el motor expone el flag
+      timeScale = 1;
+    } catch (e) { }
+  });
+
   NC.pausa = { silence, get muted() { return state.muted; } };
+
+  // ---------- seguridad del motor de cinematicas ----------
+  // si una escena termina de forma anomala, el juego no puede quedarse con timeScale = 0
+  try {
+    if (window.NC && NC.cine && typeof NC.cine.play === 'function') {
+      // el estado publico del motor no era fiable: la clase del body si lo es
+      try {
+        Object.defineProperty(NC.cine, 'on', {
+          configurable: true,
+          get() { return document.body.classList.contains('ncCineOn'); }
+        });
+      } catch (e) { }
+      // el motor expone su propia funcion de salto: la usamos si existe
+      const _play = NC.cine.play;
+      NC.cine.play = function () {
+        const r = _play.apply(this, arguments);
+        const chk = () => {
+          try {
+            if (document.body.classList.contains('ncCineOn')) return;
+            if (typeof timeScale === 'number' && timeScale === 0 && typeof running !== 'undefined' && running) timeScale = 1;
+          } catch (e) { }
+        };
+        setTimeout(chk, 150); setTimeout(chk, 800); setTimeout(chk, 1800); setTimeout(chk, 3200);
+        return r;
+      };
+      // Escape: si hay escena, la saltamos limpiamente y devolvemos el control
+      addEventListener('keydown', e => {
+        try {
+          if (e.code !== 'Escape') return;
+          if (!document.body.classList.contains('ncCineOn')) return;
+          let done = false;
+          for (const k of ['skip', 'skipNow', 'end', 'finish', 'abortar']) {
+            if (typeof NC.cine[k] === 'function') { NC.cine[k](true); done = true; break; }
+          }
+          if (!done) {
+            document.body.classList.remove('ncCineOn');
+            if (typeof timeScale === 'number') timeScale = 1;
+          }
+        } catch (e2) { }
+      }, true);
+    }
+  } catch (e) { }
 
   // ---------- titulo del menu ----------
   try {
