@@ -111,6 +111,9 @@
     #bmBtns button{background:#161033;border:1px solid #27e6ff66;color:#fff7ea;border-radius:9px;padding:7px 14px;font-weight:700;cursor:pointer;font-size:13px}
     #bmBtns button:hover{background:#27e6ff22}
     #mm,#mmw{pointer-events:none !important}
+    #mmw.minibig #mm{width:min(320px,66vw);height:min(320px,66vw)}
+    #mmw.minibig{background:rgba(21,13,58,.82);border:1px solid #27e6ff55}
+    #mmw.minibig~#wp{bottom:calc(360px + env(safe-area-inset-bottom,0px))}
   `);
   document.body.insertAdjacentHTML('beforeend', `
     <div id="bigMap">
@@ -221,8 +224,27 @@
   }
 
   // ==================== VISTA MINIMAPA (NO interactiva, siempre activa) ====================
+  window.miniBig = false;                       // minimapa ampliado durante la partida
+  function applyMiniSize() {
+    const mm = document.getElementById('mm'), w = document.getElementById('mmw');
+    if (!mm || !w) return;
+    const S = window.miniBig ? 320 : 150;
+    mm.width = mm.height = S;
+    mm.style.width = mm.style.height = '';
+    w.classList.toggle('minibig', window.miniBig);
+  }
+  window.toggleMiniBig = function (force) {
+    if (!running) return;
+    if (NC.wheel && NC.wheel.open) return;
+    const v = force !== undefined ? force : !window.miniBig;
+    if (v === window.miniBig) return;
+    window.miniBig = v;
+    applyMiniSize();
+    toast(v ? 'Minimapa ampliado · V para volver' : 'Minimapa normal');
+    if (window.NC) NC.log('minimapa', v ? 'ampliado 320px' : 'normal 150px');
+  };
   window.mini = function (px, pz, th) {
-    const S = mg.canvas.width, C = S / 2, s = .5, c = Math.cos(th), n = Math.sin(th);
+    const S = mg.canvas.width, C = S / 2, s = window.miniBig ? .78 : .5, c = Math.cos(th), n = Math.sin(th);
     mg.setTransform(1, 0, 0, 1, 0, 0); mg.clearRect(0, 0, S, S);
     mg.save(); mg.beginPath(); mg.arc(C, C, C, 0, 7); mg.clip();
     mg.fillStyle = '#241a45'; mg.fillRect(0, 0, S, S);
@@ -230,10 +252,11 @@
     drawGround(mg); drawRoads(mg);
     const dot = (x, z, r, f, o) => { mg.beginPath(); mg.arc(x, z, r, 0, 7); mg.fillStyle = f; mg.fill(); if (o) { mg.lineWidth = 2.5; mg.strokeStyle = o; mg.stroke(); } };
     // edificios cercanos
+    const near = window.miniBig ? 230 : 90;
     mg.fillStyle = '#4d3a7d';
-    for (const b of boxes) if (Math.abs(b.x - px) < 90 + b.hw && Math.abs(b.z - pz) < 90 + b.hd) mg.fillRect(b.x - b.hw, b.z - b.hd, b.hw * 2, b.hd * 2);
+    for (const b of boxes) if (Math.abs(b.x - px) < near + b.hw && Math.abs(b.z - pz) < near + b.hd) mg.fillRect(b.x - b.hw, b.z - b.hd, b.hw * 2, b.hd * 2);
     geo.refresh();
-    drawPOIs(mg, false, { x: px, y: pz }, 130);
+    drawPOIs(mg, false, { x: px, y: pz }, window.miniBig ? 340 : 130);
     if (NC.sto) drawStoryPins(mg);
     for (const cc of cops) if (cc.act) dot(cc.x, cc.z, 6, '#ff3030', '#fff');
     mg.fillStyle = '#fff'; for (const a of ai) if (!a.off) mg.fillRect(a.g.position.x - 2.5, a.g.position.z - 2.5, 5, 5);
@@ -347,6 +370,7 @@
     bmOpen = want;
     window.mapBig = bmOpen;
     $('bigMap').classList.toggle('on', bmOpen);
+    $('mmw').style.display = bmOpen ? 'none' : '';
     if (bmOpen) {
       geo.refresh();
       bmPX = pfx(); bmPZ = pfz(); bmZ = 1.1;
@@ -358,7 +382,8 @@
   };
 
   addEventListener('keydown', e => {
-    if (bmOpen && (e.code === 'Escape' || e.code === 'KeyM')) { e.preventDefault(); window.toggleMap(false); return; }
+    // OJO: la tecla M ya la gestiona el juego (toggleMap) -> aqui solo Escape, o se abriria y cerraria
+    if (bmOpen && e.code === 'Escape') { e.preventDefault(); window.toggleMap(false); return; }
     if (e.code === 'KeyX' && running) clearDest(); // sincroniza el estado interno del mapa al borrar la marca
   });
 

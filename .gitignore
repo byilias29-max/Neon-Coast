@@ -1,0 +1,4 @@
+# artefactos de pruebas locales (capturas y servidor de captura)
+shots/
+__shot.png
+shotserver.mjs
