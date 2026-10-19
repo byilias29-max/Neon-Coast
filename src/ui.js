@@ -32,7 +32,7 @@ body.ncui,body.ncui *{cursor:none !important}
 
   /* ---------- deteccion centralizada de interfaces ---------- */
   const ROOTS = ['#start', '#pause', '#secret', '#inv', '#dlg', '#bigMap', '#busted', '#wasted',
-    '#shopUI', '#wheelUI', '#phone', '#msgs', '#terminal'];
+    '#rwheel', '#shopUI', '#wheelUI', '#phone', '#msgs', '#terminal'];
   const extra = [];
   const sel = ROOTS.join(',');
 

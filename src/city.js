@@ -30,10 +30,10 @@
     for (let i = 0; i < 18; i++) { x.fillStyle = `rgba(60,55,48,${.04 + Math.random() * .1})`; x.beginPath(); x.arc(Math.random() * 128, Math.random() * 128, 8 + Math.random() * 26, 0, 7); x.fill(); }
   });
   const paveC = mkc(128, 128, (x) => {
-    x.fillStyle = '#6e6a7c'; x.fillRect(0, 0, 128, 128);
+    x.fillStyle = '#5f5c6b'; x.fillRect(0, 0, 128, 128);
     for (let j = 0; j < 4; j++) for (let i = 0; i < 4; i++) {
       const v = (Math.random() - .5) * 22;
-      x.fillStyle = `rgb(${110 + v | 0},${105 + v | 0},${122 + v | 0})`;
+      x.fillStyle = `rgb(${99 + v | 0},${95 + v | 0},${110 + v | 0})`;
       x.fillRect(i * 32 + 1, j * 32 + 1, 30, 30);
     }
     x.strokeStyle = 'rgba(0,0,0,.42)'; x.lineWidth = 2;

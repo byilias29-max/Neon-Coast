@@ -164,8 +164,8 @@ clouds.renderOrder=-1;skyG.add(clouds);
 const WX={t:.68,wx:'sol',wt:rnd(300,500),snowMul:1,lastPhase:'tarde'};
 const SKY=[{t:0,top:'#050514',mid:'#0a0a28',bot:'#1a1a3a',fog:'#0a0a20',sun:'#223',sunI:0,amb:.25,sunC:0x8899ff},
  {t:.2,top:'#2a3a6a',mid:'#c46a8a',bot:'#ffb37a',fog:'#c48a7a',sun:'#ffe0b0',sunI:1.2,amb:.5,sunC:0xffc890},
- {t:.35,top:'#2a7ac4',mid:'#7ac4e8',bot:'#cfeaf2',fog:'#9ac4d4',sun:'#fff8e8',sunI:1.85,amb:.62,sunC:0xfff4e0},
- {t:.6,top:'#2a7ac4',mid:'#7ac4e8',bot:'#cfeaf2',fog:'#9ac4d4',sun:'#fff8e8',sunI:1.85,amb:.62,sunC:0xfff4e0},
+ {t:.35,top:'#2a7ac4',mid:'#7ac4e8',bot:'#cfeaf2',fog:'#9ac4d4',sun:'#fff8e8',sunI:1.55,amb:.5,sunC:0xfff4e0},
+ {t:.6,top:'#2a7ac4',mid:'#7ac4e8',bot:'#cfeaf2',fog:'#9ac4d4',sun:'#fff8e8',sunI:1.55,amb:.5,sunC:0xfff4e0},
  {t:.72,top:'#150d3a',mid:'#4a2a8a',bot:'#ff9a7a',fog:'#c47a6a',sun:'#ffe0a0',sunI:1.55,amb:.55,sunC:0xffa86a},
  {t:.82,top:'#050514',mid:'#0a0a28',bot:'#1a1a3a',fog:'#0a0a20',sun:'#223',sunI:0,amb:.25,sunC:0x8899ff},{t:1,top:'#050514',mid:'#0a0a28',bot:'#1a1a3a',fog:'#0a0a20',sun:'#223',sunI:0,amb:.25,sunC:0x8899ff}];
 function skyAt(t){let a=SKY[0],b=SKY[SKY.length-1];for(let i=0;i<SKY.length-1;i++)if(t>=SKY[i].t&&t<=SKY[i+1].t){a=SKY[i];b=SKY[i+1];break}const f=(t-a.t)/Math.max(1e-4,b.t-a.t),L=(x,y)=>new THREE.Color(x).lerp(new THREE.Color(y),f);return{top:L(a.top,b.top),mid:L(a.mid,b.mid),bot:L(a.bot,b.bot),fog:L(a.fog,b.fog),sun:L(a.sun,b.sun),sunI:a.sunI+(b.sunI-a.sunI)*f,amb:a.amb+(b.amb-a.amb)*f,sunC:L(a.sunC,b.sunC)}}
@@ -187,7 +187,7 @@ function wxTick(dt){WX.t=(WX.t+dt/480)%1;WX.wt-=dt;
  if(precip.visible){const pa=precip.geometry.attributes.position.array,fast=WX.wx=='nieve'?7:65;for(let i=0;i<900;i++){pa[i*3+1]-=fast*dt;pa[i*3]+=WX.wx=='nieve'?Math.sin(performance.now()/900+i)*dt*3:0;if(pa[i*3+1]<camera.position.y-12){pa[i*3]=camera.position.x+rnd(-60,60);pa[i*3+1]=camera.position.y+rnd(20,70);pa[i*3+2]=camera.position.z+rnd(-60,60)}}precip.geometry.attributes.position.needsUpdate=true}
  if(WX.wx=='lluvia'&&Math.random()<dt/14){rd.toneMappingExposure=3;setTimeout(()=>rd.toneMappingExposure=CFG.expo,120);beep(55,.9,'sawtooth',.035)}}
 try{const pm=new THREE.PMREMGenerator(rd),es=new THREE.Scene();es.add(skyG.children[0].clone());es.add(sun.clone());scene.environment=pm.fromScene(es,0,1,1500).texture}catch(e){}
-scene.add(new THREE.HemisphereLight(0xa8c0dd,0x51483e,.62));
+scene.add(new THREE.HemisphereLight(0xa8c0dd,0x51483e,.5));
 const sunL=new THREE.DirectionalLight(0xffa86a,2.4);sunL.castShadow=true;sunL.shadow.mapSize.set(1024,1024);
 Object.assign(sunL.shadow.camera,{left:-70,right:70,top:70,bottom:-70,far:400});sunL.shadow.bias=-.0005;scene.add(sunL,sunL.target);
 const glowT=(()=>{const c=cv(64,64),x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,205,130,.9)');g.addColorStop(1,'rgba(255,205,130,0)');x.fillStyle=g;x.fillRect(0,0,64,64);return tex(c)})(),flash=new THREE.Sprite(new THREE.SpriteMaterial({map:glowT,blending:THREE.AdditiveBlending,depthWrite:false}));flash.scale.set(3,3,1);flash.visible=false;scene.add(flash);
