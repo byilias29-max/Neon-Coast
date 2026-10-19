@@ -2,3 +2,6 @@
 shots/
 __shot.png
 shotserver.mjs
+
+.vercel
+.env*

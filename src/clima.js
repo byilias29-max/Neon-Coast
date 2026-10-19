@@ -21,7 +21,7 @@
     const cam = camera.position;
     for (let i = 0; i < N; i++) {
       const k = i * 6;
-      const x = cam.x + R2(-28, 28), y = cam.y + R2(-6, 38), z = cam.z + R2(-28, 28);
+      const x = cam.x + R2(-34, 34), y = cam.y + R2(-6, 40), z = cam.z + R2(-34, 34);
       drops[k] = x; drops[k + 1] = y; drops[k + 2] = z;
       drops[k + 3] = x; drops[k + 4] = y - rainLen; drops[k + 5] = z;
     }

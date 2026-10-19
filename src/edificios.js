@@ -77,23 +77,31 @@
       // zócalo de planta baja (piedra) + banda de coronación
       G.plaster.push(col(box(alongX ? fw : .34, 1.0, alongX ? .34 : fw, fx, .5, fz), '#6f6a62'));
       if (h > 8) G.plaster.push(col(box(alongX ? fw + .2 : .3, .45, alongX ? .3 : fw + .2, fx, h - .6, fz), pick(acc)));
+      // helper: pieza pegada a la fachada (largo a lo largo de la fachada, salida hacia la calle)
+      const face = (len, hgt, thk, off, y, c) => {
+        const g = alongX ? new T.BoxGeometry(thk, hgt, len) : new T.BoxGeometry(len, hgt, thk);
+        const px = alongX ? fx + front * off : fx, pz = alongX ? fz : fz + front * off;
+        return col(g, c).translate(px, y, pz);
+      };
       // planta baja: escaparate con toldo y rotulo
       if (Math.random() < .78) {
         const aw = Math.min(fw * .7, 7);
-        const striped = new T.BoxGeometry(alongX ? aw : 1.5, .18, alongX ? 1.5 : aw);
-        const sg = col(striped, pick(acc));
-        sg.translate(fx + (alongX ? 0 : front * .7), 3.5, fz + (alongX ? front * .7 : 0));
-        G.wood.push(sg);
+        // toldo inclinado (cae hacia la calle)
+        const awg = alongX ? new T.BoxGeometry(1.6, .16, aw) : new T.BoxGeometry(aw, .16, 1.6);
+        if (alongX) awg.rotateZ(front * .22); else awg.rotateX(-front * .22);
+        const awm = col(awg, pick(acc));
+        const apx = alongX ? fx + front * .75 : fx, apz = alongX ? fz : fz + front * .75;
+        awm.translate(apx, 3.5, apz);
+        G.wood.push(awm);
         // cartel
-        const sg2 = col(box(alongX ? aw * .8 : .18, .8, alongX ? .18 : aw * .8, fx + (alongX ? 0 : front * .1), 4.35, fz + (alongX ? front * .1 : 0)), pick(['#ff5a7a', '#27e6ff', '#ffd24a', '#3dff9a', '#ff8a3a']));
-        G.light.push(sg2);
+        G.light.push(face(aw * .8, .8, .18, .12, 4.35, pick(['#ff5a7a', '#27e6ff', '#ffd24a', '#3dff9a', '#ff8a3a'])));
         // escaparate y puerta
-        G.glass.push(col(box(alongX ? aw * .75 : .1, 2.1, alongX ? .1 : aw * .75, fx + (alongX ? 0 : front * .05), 1.5, fz + (alongX ? front * .05 : 0)), '#8fd0e8'));
-        G.wood.push(col(box(alongX ? 1.1 : .16, 2.2, alongX ? .16 : 1.1, fx + (alongX ? aw * .32 : front * .12), 1.1, fz + (alongX ? front * .12 : aw * .32)), '#4a3524'));
+        G.glass.push(face(aw * .75, 2.1, .1, .06, 1.5, '#8fd0e8'));
+        G.wood.push(face(1.1, 2.2, .16, .14, 1.1, '#4a3524'));
         // escalón
-        G.plaster.push(col(box(alongX ? aw * .8 : .8, .12, alongX ? .8 : aw * .8, fx + (alongX ? 0 : front * .45), .07, fz + (alongX ? front * .45 : 0)), '#8a857c'));
+        G.plaster.push(face(aw * .8, .12, .8, .45, .07, '#8a857c'));
         // luz de escaparate
-        G.light.push(col(box(alongX ? aw * .6 : .3, .1, alongX ? .3 : aw * .6, fx + (alongX ? 0 : front * .35), 3.1, fz + (alongX ? front * .35 : 0)), '#ffe0a8'));
+        G.light.push(face(aw * .6, .1, .3, .35, 3.1, '#ffe0a8'));
       } else {
         // residential: balcón, buzón, planta
         if (h > 6) {
