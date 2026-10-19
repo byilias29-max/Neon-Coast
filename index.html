@@ -140,7 +140,7 @@ const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xff9a7a,90,820);
 const camera=new THREE.PerspectiveCamera(62,1,.5,480);
 function cv(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c}
 function tex(c,rx=1,ry=1,lin){const t=new THREE.CanvasTexture(c);t.encoding=lin?THREE.LinearEncoding:THREE.sRGBEncoding;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);t.anisotropy=aniso;return t}
-function merge(L){const p=[],n=[],u=[],c=[],ix=[],hc=!!L[0].attributes.color;let o=0;
+function merge(L){if(!L||!L.length)return new THREE.BufferGeometry();const p=[],n=[],u=[],c=[],ix=[],hc=!!L[0].attributes.color;let o=0;
   for(const g of L){const a=g.attributes;p.push(...a.position.array);n.push(...a.normal.array);u.push(...a.uv.array);if(hc)c.push(...a.color.array);g.index.array.forEach(i=>ix.push(i+o));o+=a.position.count}
   const m=new THREE.BufferGeometry(),F=THREE.Float32BufferAttribute;m.setAttribute('position',new F(p,3));m.setAttribute('normal',new F(n,3));m.setAttribute('uv',new F(u,2));if(hc)m.setAttribute('color',new F(c,3));m.setIndex(ix);return m}
 // Cielo y luces
