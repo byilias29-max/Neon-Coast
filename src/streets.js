@@ -197,7 +197,8 @@
       const g = mkCar(palette[(k * 3) % palette.length]);
       g.position.set(x, .35, z); g.rotation.y = rot;
       boxes.push(box);                           // colision estatica para no atravesarlo
-      parked.push({ g, x: +x.toFixed(1), z: +z.toFixed(1), rot: +rot.toFixed(2) });
+      // col, caja y edificio se guardan para el sistema de robo (carjack)
+      parked.push({ g, x: +x.toFixed(1), z: +z.toFixed(1), rot: +rot.toFixed(2), col: palette[(k * 3) % palette.length], box, bx: b.x, bz: b.z });
     });
     (NC.PARKED = NC.PARKED || []).push(...parked);
   } catch (e) { NC.log('parked', e); }

@@ -678,7 +678,9 @@
       NC.log('historia reiniciada (debug)');
     },
     cast: function () { return CAST.map(c => ({ id: c.id, at: c.at(), vis: c.vis(), have: !!c.h, ok: c.h ? c.h.g.visible : null, x: c.h ? Math.round(c.h.g.position.x) : null, z: c.h ? Math.round(c.h.g.position.z) : null })); },
-    ev: function () { return { market: EV.market.on, black: EV.black.active }; }
+    ev: function () { return { market: EV.market.on, black: EV.black.active }; },
+    mkt: function () { return EV.market; },
+    blk: function () { return EV.black; }
   };
   NC.log('historia lista · capitulo ' + S.ch + ' / 8 · barrios y eventos activos');
 })();

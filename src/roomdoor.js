@@ -14,6 +14,7 @@
   const wl = document.createElement('div');
   wl.id = 'walk';
   document.body.appendChild(wl);
+  NC.walkE = wl; // expuesto para que otras capas (carjack) escriban pistas coexistiendo
 
   // ---- material comun para hojas de puerta
   const leafMat = new THREE.MeshStandardMaterial({ color: 0x7a4a2a, roughness: .65, metalness: .05 });
@@ -178,6 +179,7 @@
     }
     wl.innerHTML = hint;
     wl.style.display = hint ? 'block' : 'none';
+    if (hint) wl.dataset.src = 'roomdoor'; // marca de propiedad de la pista (carjack no la sobreescribe)
     // puertas automaticas
     for (const a of AUTOS) {
       const gp = a.pivot.position, midX = gp.x + 1.3, midZ = gp.z;
