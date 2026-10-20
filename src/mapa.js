@@ -26,12 +26,18 @@
   } catch (e) { }
 
   // ---------- 2) M amplía el minimapa; el mapa completo solo desde el menu ----------
-  const MINI = { grande: false, sz: 150, k: .5, szB: 330, kB: .30 };
+  const MINI = { grande: false, sz: 150, k: .5, szB: 230, kB: .42 };
   function aplicarMini() {
     try {
       if (NC.Nav && NC.Nav.setMini) NC.Nav.setMini(MINI.grande ? MINI.szB : MINI.sz, MINI.grande ? MINI.kB : MINI.k);
       const w = document.getElementById('mmw');
-      if (w) { w.classList.toggle('mmbig', MINI.grande); w.style.width = ''; w.style.height = ''; }
+      if (w) {
+        // el contenedor debe seguir al lienzo (si se deja en auto crece con el tamano
+        // intrinseco del canvas y acaba cubriendo la pantalla)
+        const s = (MINI.grande ? MINI.szB : MINI.sz) + 'px';
+        w.style.width = s; w.style.height = s;
+        w.classList.toggle('mmbig', MINI.grande);
+      }
     } catch (e) { }
   }
   function mapaAbierto() {

@@ -1,4 +1,4 @@
-/* Neon Coast - interfaz: sistema visual comun para HUD, menus y paneles.
+﻿/* Neon Coast - interfaz: sistema visual comun para HUD, menus y paneles.
    Tipografia jerarquizada, vidrios consistentes, estados de control y cursor coherente. */
 (function () {
   'use strict';
@@ -16,7 +16,7 @@
   }
   /* ---------- HUD superior ---------- */
   #top{
-    position:absolute;top:14px;left:16px;display:flex;gap:10px;align-items:center;
+    position:absolute;top:14px;left:16px;display:flex;gap:10px;align-items:center;max-width:calc(100% - 200px);overflow:hidden;
     padding:9px 14px;border-radius:var(--r);background:var(--pane);border:1px solid var(--line);
     box-shadow:var(--sh);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);
     font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--ink);font-size:var(--fs);
@@ -39,26 +39,25 @@
     position:absolute;top:14px;left:50%;transform:translateX(-50%);width:340px;pointer-events:none;
     display:flex;flex-direction:column;align-items:center;gap:6px;
     font-family:'Segoe UI',system-ui,sans-serif;color:var(--ink)}
-  #cmp{width:320px;height:34px;opacity:.92;filter:drop-shadow(0 2px 8px rgba(0,0,0,.5))}
+  #cmp{width:260px;height:34px;opacity:.92;filter:drop-shadow(0 2px 8px rgba(0,0,0,.5))}
   #obj{
     font-size:var(--fss);color:var(--muted);letter-spacing:.14em;text-transform:uppercase;font-weight:600;
     background:var(--pane);border:1px solid var(--line);border-radius:20px;padding:4px 13px;backdrop-filter:blur(8px)}
   #mis{
-    font-size:12.5px;color:var(--ink);text-align:center;max-width:420px;line-height:1.5;
+    font-size:12.5px;color:var(--ink);text-align:center;max-width:300px;line-height:1.5;
     background:var(--pane2);border:1px solid var(--line);border-left:2px solid var(--cyan);border-radius:var(--r2);
     padding:8px 13px;box-shadow:var(--sh);backdrop-filter:blur(9px)}
   #mis b{color:var(--cyan);font-weight:700}
 
   /* ---------- minimapa ---------- */
   #mmw{
-    position:absolute;top:64px;right:18px;width:auto;height:auto;border-radius:50%;overflow:hidden;
+    position:absolute;top:64px;right:18px;width:150px;height:150px;border-radius:50%;overflow:hidden;
     border:1px solid var(--line2);box-shadow:var(--sh),0 0 0 4px rgba(8,6,20,.35);background:#120e26;
-    transition:width .25s cubic-bezier(.2,.8,.2,1),height .25s cubic-bezier(.2,.8,.2,1),top .25s ease}
+    transition:width .25s cubic-bezier(.2,.8,.2,1),height .25s cubic-bezier(.2,.8,.2,1)}
   #mm{display:block}
-  #mmw.mmbig{top:64px;right:18px}
-  #mmw canvas{transition:width .25s cubic-bezier(.2,.8,.2,1),height .25s cubic-bezier(.2,.8,.2,1)}
+  #mmw canvas{width:100%!important;height:100%!important;transition:width .25s cubic-bezier(.2,.8,.2,1),height .25s cubic-bezier(.2,.8,.2,1)}
   #wp{
-    position:absolute;right:18px;top:240px;max-width:190px;text-align:right;font-size:var(--fss);color:var(--muted);
+    position:absolute;right:18px;top:302px;max-width:190px;text-align:right;font-size:var(--fss);color:var(--muted);
     background:var(--pane);border:1px solid var(--line);border-radius:var(--r2);padding:5px 10px;pointer-events:none}
 
   /* ---------- velocimetro ---------- */

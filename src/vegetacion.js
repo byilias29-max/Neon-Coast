@@ -69,6 +69,8 @@
     windMats.push(mat);
   }
   addWind(LEAFM, 1.1); addWind(LEAFM2, 1.1); addWind(PALMM, 1.6);
+  // la vegetacion no admite pintura
+  try { if (!window.NC.noPintar) window.NC.noPintar = []; [BARK, LEAFM, LEAFM2, PALMM].forEach(m => window.NC.noPintar.push(m)); } catch (e) { }
 
   // ---------- geometrias ----------
   const cyl = (rt, rb, h, seg) => new T.CylinderGeometry(rt, rb, h, seg || 8);
