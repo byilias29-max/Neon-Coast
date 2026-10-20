@@ -122,8 +122,9 @@ h1{margin:0;font-size:clamp(40px,10vw,74px);font-style:italic;font-weight:800;le
   <div class="panel">
     <h1>NEON SLICE</h1>
     <p class="tagline">CORTA · ENCHAINA · ENFRÉNTATE</p>
-    <p class="desc">Desliza el dedo o el ratón para cortar la fruta. Encadena cortes para multiplicar
-      los puntos y no toques las bombas. Corta la fruta dorada para unle a ti al <b>Frenesí</b>.</p>
+    <p class="desc">Las frutas salen disparadas desde abajo. Desliza el dedo o el ratón para cortarlas.
+      Encadena cortes para multiplicar los puntos y no toques las bombas. Corta la fruta dorada para
+      unle a ti al <b>Frenesí</b>.</p>
     <div class="howto">
       <div><i>✋</i><span><b>Arrastra</b> para trazar tu cuchilla. Cuantos más frutas cortes de una vez, más puntos.</span></div>
       <div><i>💣</i><span><b>Las bombas</b> quitan una vida y rompen tu racha. 3 vidas, sin tregua.</span></div>
@@ -187,10 +188,10 @@ const FRENZY_TIME = 8;
 const BASE_POINTS = 10;
 const BEST_KEY = 'neonslice.best.v1';
 const MEDALS = [
-  { min:6000, label:'🥇 MEDALLA DE ORO',  color:'#ffd24a' },
-  { min:2500, label:'🥈 MEDALLA DE PLATA', color:'#dfe7ff' },
-  { min:600,  label:'🥉 MEDALLA DE BRONCE', color:'#ffb37a' },
-  { min:0,    label:'🕹️ BUEN INTENTO',     color:'#fff7ea' },
+  { min:10000, label:'🥇 MEDALLA DE ORO',  color:'#ffd24a' },
+  { min:4000,  label:'🥈 MEDALLA DE PLATA', color:'#dfe7ff' },
+  { min:1200,  label:'🥉 MEDALLA DE BRONCE', color:'#ffb37a' },
+  { min:0,     label:'🕹️ BUEN INTENTO',     color:'#fff7ea' },
 ];
 
 const FRUITS = [
@@ -207,7 +208,7 @@ const GOLD = { r:27, core:'#fff0b0', rind:'#ffc247', edge:'#e08b00', seeds:false
 const S = {
   state:'menu',            // menu | play | pause | over
   score:0, best:0, chain:0, chainT:0, maxChain:0, lives:3,
-  time:ROUND_TIME, frenzy:0, cuts:0, goldens:0,
+  time:ROUND_TIME, frenzy:0, cuts:0, goldens:0, dying:false,
   shake:0, flash:0, flashCol:'#ff2e63', hitstop:0, elapsed:0,
 };
 
@@ -412,6 +413,7 @@ function show(screen){
 function startGame(){
   S.state='play'; S.score=0; S.chain=0; S.chainT=0; S.maxChain=0; S.lives=3;
   S.time=ROUND_TIME; S.frenzy=0; S.cuts=0; S.goldens=0; S.shake=0; S.flash=0; S.hitstop=0;
+  S.dying=false;
   S.elapsed=0; spawnT=0.4;
   fruits.length=0; parts.length=0; pops.length=0; splats.length=0; rings.length=0; stars.length=0;
   trail.length=0; swipeCuts=0;
@@ -519,12 +521,17 @@ addEventListener('blur', ()=>{ if(S.state==='play') pauseGame(); });
 // ============================================================
 // ENTIDADES
 // ============================================================
+// Las frutas se lanzan desde ABAJO hacia arriba y luego caen por gravedad
+const LAUNCH_MIN = 950, LAUNCH_MAX = 1320;   // velocidad inicial hacia arriba (px/s)
+
 function spawnFruit(kind, x, y, vx, vy){
   const type = kind==='bomb' ? {r:30} : (kind==='gold' ? GOLD : pick(FRUITS));
   const f = {
     type, kind: kind==='bomb'?'bomb':(kind==='gold'?'gold':'fruit'),
-    x: x ?? rnd(80, W-80), y: y ?? rnd(-220,-60),
-    vx: vx ?? rnd(-90,90), vy: vy ?? rnd(-40,120),
+    x: x ?? rnd(90, W-90),
+    y: y ?? H + rnd(10, 40),                  // nace bajo la pantalla
+    vx: vx ?? rnd(-110, 110),
+    vy: vy ?? -rnd(LAUNCH_MIN, LAUNCH_MAX),   // sale disparada hacia arriba
     r: type.r, rot: rnd(0,6.28), spin: rnd(-2.6,2.6), cut:false, born:performance.now(),
   };
   fruits.push(f);
@@ -535,19 +542,32 @@ function spawnWave(){
   const frenzy = S.frenzy>0;
   const bombP = clamp(0.08 + t*0.0028, 0.08, 0.30);
   const n = 1 + (Math.random()<0.55?1:0) + (t>25 && Math.random()<0.5?1:0) + (frenzy && Math.random()<0.6?1:0);
-  const baseX = rnd(120, W-120);
-  const arc = n>1;
+  const baseX = rnd(140, W-140);
   let gold = false;
   for(let i=0;i<n;i++){
     let kind='fruit';
     if(!gold && Math.random()<0.09){ kind='gold'; gold=true; }
     else if(Math.random()<bombP) kind='bomb';
-    const off = arc ? (i-(n-1)/2)*rnd(90,130) : 0;
-    const x = clamp(baseX+off, 60, W-60);
-    const y = -60 - i*rnd(40,90) - (arc?Math.abs(off)*0.5:0);
-    const vx = arc ? (off*0.5) + rnd(-25,25) : rnd(-120,120);
-    const vy = arc ? -180 - rnd(0,90) : rnd(-60,140);
-    spawnFruit(kind, x, y, vx, vy);
+    // abanico: salen desde abajo y se separan mientras suben
+    const spread = (i-(n-1)/2);
+    const x = clamp(baseX + spread*rnd(70,115), 60, W-60);
+    const y = H + rnd(15, 45) - i*rnd(0,18);
+    const vy = -rnd(LAUNCH_MIN, LAUNCH_MAX) - (frenzy?90:0);
+    const vx = spread*rnd(35,70) + rnd(-25,25);
+    const f = spawnFruit(kind, x, y, vx, vy);
+    launchPuff(f);
+  }
+}
+// Estallido suave en el punto de lanzamiento (indica que la fruta sale disparada)
+function launchPuff(f){
+  const col = f.kind==='gold' ? '#ffd24a' : (f.kind==='bomb' ? '#8a8aa8' : f.type.core);
+  rings.push({x:f.x, y:Math.min(f.y, H-6), r:4, max:38, life:0.28, max_l:0.28, c:col, a:0.35});
+  for(let i=0;i<7;i++){
+    const a = -Math.PI/2 + rnd(-1.1,1.1);
+    const sp = rnd(90,260);
+    parts.push({x:f.x+rnd(-f.r*0.6,f.r*0.6), y:Math.min(f.y, H-4),
+      vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, r:rnd(1.2,3), c:col,
+      life:rnd(0.2,0.45), max:0.45, g:600});
   }
 }
 function burstJuice(f, color){
@@ -599,6 +619,7 @@ function update(dt){
   for(const s of stars){ s.p += dt*2.2; s.y += dt*4*s.s; if(s.y>H+4){ s.y=-4; s.x=rnd(0,W);} }
 
   if(S.state!=='play') { updateFx(dt); return; }
+  if(S.dying){ updateFx(dt); return; }        // morir: la partida queda congelada
 
   // tiempo y frenzy
   S.time -= dt;
@@ -656,12 +677,13 @@ function update(dt){
 }
 
 function cutFruit(f){
+  if(S.dying) return;
   f.cut = true;
   S.cuts++;
   swipeCuts++;
 
   if(f.kind==='bomb'){
-    S.lives--;
+    S.lives = Math.max(0, S.lives-1);
     S.chain=0; S.chainT=0;
     S.shake=1.1; S.flash=1; S.flashCol='#ff2e63';
     S.hitstop=0.09;
@@ -675,7 +697,10 @@ function cutFruit(f){
     rings.push({x:f.x,y:f.y,r:20,max:220,life:.5,max_l:.5,c:'#ff5a7a'});
     addScore(0,f.x,f.y,'¡BOOM!','#ff5a7a');
     drawLives();
-    if(S.lives<=0){ setTimeout(()=>{ if(S.state==='play') gameOver('lives'); }, 420); }
+    if(S.lives<=0){
+      S.dying = true;                       // congela la partida durante la explosión
+      setTimeout(()=>{ if(S.state==='play') gameOver('lives'); }, 480);
+    }
     return;
   }
 
@@ -761,7 +786,7 @@ function drawBackground(){
   ctx.globalAlpha = 0.22;
   ctx.strokeStyle = S.frenzy>0 ? '#ff5a7a' : '#27e6ff';
   ctx.lineWidth = 1;
-  const gy = H*0.62, gh = 180;
+  const gy = H*0.74, gh = 130;
   for(let i=0;i<14;i++){
     const y = gy + Math.pow(i/13,2)*gh;
     ctx.globalAlpha = 0.22*(1-i/16);
@@ -938,7 +963,7 @@ function drawFx(){
 
   for(const r of rings){
     const a = clamp(r.life/r.max_l,0,1);
-    ctx.globalAlpha = a*0.7;
+    ctx.globalAlpha = a*(r.a!==undefined?r.a:0.7);
     ctx.strokeStyle = r.c; ctx.lineWidth = 3*a+1;
     ctx.beginPath(); ctx.arc(r.x,r.y,r.r,0,6.283); ctx.stroke();
   }
@@ -1026,6 +1051,7 @@ show('menu');
 window.NeonSlice = {
   state:S, fruits, start:startGame, pause:pauseGame, resume:resumeGame,
   tick(dt){ update(dt); },
+  draw(){ render(); },
   swipe(){ endSwipe(); },
   spawn(kind,x,y,vx,vy){ return spawnFruit(kind||'fruit',x,y,vx,vy); },
   cut(f){ cutFruit(f); },
