@@ -882,12 +882,26 @@
   }
 
   /* ===================== 9. letras 3D y rotulo ===================== */
-  function letras3D(F, texto, alt, a0, y0, n, color) {
+  /* acentos: se dibujan como marca aparte sobre la letra (como en los rotulos reales) */
+const ACC = { 'Á': ['A', 'acute'], 'É': ['E', 'acute'], 'Í': ['I', 'acute'], 'Ó': ['O', 'acute'], 'Ú': ['U', 'acute'], 'Ñ': ['N', 'tilde'], 'Ü': ['U', 'diaeresis'] };
+const ACC_MARK = { acute: ['0010', '0110', '1100'], tilde: ['0110', '1001'], diaeresis: ['10001'] };
+function dibujarAccento(F, tipo, x, y0, alt, p, n, color) {
+  const mark = ACC_MARK[tipo]; if (!mark) return;
+  const yTop = y0 + alt / 2 + p * 0.35;
+  for (let r = 0; r < mark.length; r++) for (let c = 0; c < mark[r].length; c++) {
+    if (mark[r][c] !== '1') continue;
+    const cx = x + 1.4 * p + c * p + p / 2;
+    const cy = yTop + (mark.length - 1 - r) * p * .95;
+    F.box('neon', color, p * .8, p * .8, .12, cx, cy, n);
+  }
+}
+function letras3D(F, texto, alt, a0, y0, n, color) {
     const p = alt / 7;
     let x = a0;
     const txt = String(texto).toUpperCase();
     for (const ch of txt) {
-      const gl = FONT[ch] || FONT[' '];
+      const acc = ACC[ch];
+      const gl = FONT[acc ? acc[0] : ch] || FONT[' '];
       const filas = gl.split('/');
       for (let r = 0; r < 7; r++) {
         const fila = filas[r] || '00000';
@@ -898,6 +912,7 @@
           F.box('neon', color, p * .93, p * .93, .13, cx, cy, n);
         }
       }
+      if (acc) dibujarAccento(F, acc[1], x, y0, alt, p, n, color);
       x += 6 * p;
     }
     return x;
