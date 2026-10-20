@@ -909,7 +909,7 @@ function letras3D(F, texto, alt, a0, y0, n, color) {
           if (fila[c] !== '1') continue;
           const cx = x + c * p + p / 2;
           const cy = y0 + alt / 2 - r * p - p / 2;
-          F.box('neon', color, p * .93, p * .93, .13, cx, cy, n);
+          F.box('neon', color, p * .99, p * .99, .13, cx, cy, n);
         }
       }
       if (acc) dibujarAccento(F, acc[1], x, y0, alt, p, n, color);

@@ -79,7 +79,11 @@
     try {
       let best = null, bd = 1e9;
       for (const s2 of shops) { const d = Math.hypot(s2.x, s2.z - 266); if (s2.z > 200 && d < bd) { bd = d; best = s2; } }
-      if (best) return { x: best.x, z: best.z };
+      if (best) {
+        // junto a la entrada pero SIN taparla: la puerta del kiosco esta en (best.x, best.z - 1.6)
+        // y su hoja abre hacia dentro, asi que Marcos se queda a un lado, sobre la acera
+        return { x: best.x + 2.3, z: best.z - 0.5 };
+      }
     } catch (e) { }
     return { x: 38, z: 267 };
   }

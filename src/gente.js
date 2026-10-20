@@ -327,6 +327,13 @@
       if (P.foot && !P.dying && !P.busted) {
         const n = (typeof nearNpc === 'function') ? nearNpc(2.8) : null;
         if (n) {
+          // los actores de la historia tienen su propio dialogo: no los interceptamos
+          let esActor = false;
+          try {
+            if (window.NC && NC.sto && NC.sto.actors) esActor = NC.sto.actors.some(a => a.n === n.name);
+            if (!esActor && window.NC && NC.sto && NC.sto.cast) esActor = NC.sto.cast.some(a => a.n === n.name);
+          } catch (e) { }
+          if (esActor) return _int && _int.apply(this, arguments);
           const idx = npcs.indexOf(n);
           // si hay policia cerca y el jugador esta buscado, huyen
           if (P.wanted >= 2 && Math.random() < .5) {
