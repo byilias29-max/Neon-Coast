@@ -25,11 +25,13 @@
     { n: 'Colina Mar', col: '#ffd24a', ink: '#ffefb0', line: 'rgba(255,210,74,.45)' },
     { n: 'Fleming Sur', col: '#3dff9a', ink: '#c4ffdf', line: 'rgba(61,255,154,.5)' }
   ];
-  ZN[0].rect = [-EXT - 40, -EXT - 40, (EXT + 40) * 2, (-3 * CELL) + EXT + 40];
+  // rect = [x, z, ancho, alto] en coordenadas del mundo; DEBE coincidir con zoneCode() (celdas -3..2 / 3..)
+  //   Puerto Viejo: z < -2C   Fleming Sur: z >= 3C   Neon: x,z en [-2C, 3C)   Betica: x < -2C   Colina Mar: x >= 3C
+  ZN[0].rect = [-EXT - 40, -EXT - 40, (EXT + 40) * 2, (-2 * CELL) + EXT + 40];
   ZN[4].rect = [-EXT - 40, 3 * CELL, (EXT + 40) * 2, EXT + 40 - 3 * CELL];
-  ZN[1].rect = [-2 * CELL, -3 * CELL, 4 * CELL, 4 * CELL];
-  ZN[2].rect = [-EXT - 40, -3 * CELL, (EXT + 40) - 2 * CELL, 4 * CELL];
-  ZN[3].rect = [2 * CELL, -3 * CELL, (EXT + 40) - 2 * CELL, 4 * CELL];
+  ZN[1].rect = [-2 * CELL, -2 * CELL, 5 * CELL, 5 * CELL];
+  ZN[2].rect = [-EXT - 40, -2 * CELL, (EXT + 40) - 2 * CELL, 5 * CELL];
+  ZN[3].rect = [3 * CELL, -2 * CELL, (EXT + 40) - 3 * CELL, 5 * CELL];
   NC.sto = {
     zones: [],
     pins: [],
@@ -86,12 +88,12 @@
   PIER.cx = (PIER.x0 + PIER.x1) / 2; PIER.cz = (PIER.z0 + PIER.z1) / 2;
 
   const CAST = [
-    { id: 'aurora', n: 'Aurora', job: 'tu hermana', sh: 0xffd24a, pa: 0x6a3a22, ha: 0x6b4a32, hat: 2, at: () => ({ x: (window.NCH ? NCH.x : HX) + 2.4, z: (window.NCH ? NCH.z : 150) + 2.6 }), vis: () => true },
-    { id: 'marcos', n: 'Marcos', job: 'dueño del kiosco', sh: 0xd9a441, pa: 0x4a3322, ha: 0x3c2b1e, hat: 0, at: kioskSouth, vis: () => true },
-    { id: 'elena', n: 'Elena', job: 'dueña del Club Neón', sh: 0xff5a7a, pa: 0x2a1a3a, ha: 0x1a1a24, hat: 0, at: clubDoor, vis: () => true },
-    { id: 'vera', n: 'Vera', job: 'médica en la clinica', sh: 0xd8e6ee, pa: 0x9aa7b8, ha: 0x8a4a1a, hat: 0, at: () => ({ x: CLINIC.x, z: CLINIC.z + 2.6 }), vis: () => true },
-    { id: 'alcaide', n: 'Sgto. Alcaide', job: 'sargento del puerto', sh: 0x1e3a8a, pa: 0x172554, ha: 0x555555, hat: 1, at: () => PORT.pos, vis: () => S.ch >= 5 || S.done },
-    { id: 'ficha', n: 'Ficha', job: 'cobra deudas del puerto', sh: 0x2e2e2e, pa: 0x14141e, ha: 0x140d0b, hat: 0, at: () => PORT.pos2, vis: () => S.ch >= 5 && S.ch <= 8 && !S.fichaOut }
+    { id: 'aurora', n: 'Aurora', job: 'tu hermana', sh: 0xffd24a, pa: 0x6a3a22, ha: 0x6b4a32, hat: 2, look: { hairStyle: 'pony', fem: true, w: .93, skin: 0xe3b18a, sleeve: 0 }, at: () => ({ x: (window.NCH ? NCH.x : HX) + 2.4, z: (window.NCH ? NCH.z : 150) + 2.6 }), vis: () => true },
+    { id: 'marcos', n: 'Marcos', job: 'dueño del kiosco', sh: 0xd9a441, pa: 0x4a3322, ha: 0x3c2b1e, hat: 0, look: { hairStyle: 'short', w: 1.08, skin: 0xc98e66, sleeve: 0 }, at: kioskSouth, vis: () => true },
+    { id: 'elena', n: 'Elena', job: 'dueña del Club Neón', sh: 0xff5a7a, pa: 0x2a1a3a, ha: 0x1a1a24, hat: 0, look: { hairStyle: 'long', fem: true, w: .93, skin: 0xc98e66, sleeve: 0 }, at: clubDoor, vis: () => true },
+    { id: 'vera', n: 'Vera', job: 'médica en la clinica', sh: 0xd8e6ee, pa: 0x9aa7b8, ha: 0x8a4a1a, hat: 0, look: { hairStyle: 'pony', fem: true, w: .94, skin: 0xf1c9a5, sleeve: 1 }, at: () => ({ x: CLINIC.x, z: CLINIC.z + 2.6 }), vis: () => true },
+    { id: 'alcaide', n: 'Sgto. Alcaide', job: 'sargento del puerto', sh: 0x1e3a8a, pa: 0x172554, ha: 0x555555, hat: 1, look: { hairStyle: 'buzz', w: 1.08, skin: 0xe3b18a, sleeve: 1 }, at: () => PORT.pos, vis: () => S.ch >= 5 || S.done },
+    { id: 'ficha', n: 'Ficha', job: 'cobra deudas del puerto', sh: 0x2e2e2e, pa: 0x14141e, ha: 0x140d0b, hat: 0, look: { hairStyle: 'bald', w: 1.1, skin: 0xa06c4a, sleeve: 1 }, at: () => PORT.pos2, vis: () => S.ch >= 5 && S.ch <= 8 && !S.fichaOut }
   ];
   try { if (window.NC && NC.sto) NC.sto.cast = CAST; } catch (e) { }
   function unstick(p) { // saca un punto de cajas solidas (edificios, mobiliario)
@@ -110,7 +112,7 @@
     for (const c of CAST) {
       if (c.h) continue;
       if (!c.vis()) continue;
-      const h = mkHuman(c.sh, c.pa, c.ha, c.hat);
+      const h = mkHuman(c.sh, c.pa, c.ha, c.hat, c.look);
       const pos = unstick(c.at());
       h.g.position.set(pos.x, gh(pos.x, pos.z), pos.z);
       scene.add(h.g);
@@ -311,32 +313,32 @@
   // 7. CAPITULOS
   // ============================================================
   const pins = NC.sto.pins;
-  function setPin(x, z, color, pulse, r) {
+  function setPin(x, z, color, pulse, r, name) {
     pins.length = 0;
-    if (x !== undefined) pins.push({ x, z, color: color || '#ffd24a', type: 'star', pulse: !!pulse, r });
+    if (x !== undefined) pins.push({ x, z, color: color || '#ffd24a', type: 'star', pulse: !!pulse, r, name });
   }
-  function addPin(x, z, color, type) { pins.push({ x, z, color: color || '#27e6ff', type: type || 'dot', r: 12 }); }
+  function addPin(x, z, color, type, name) { pins.push({ x, z, color: color || '#27e6ff', type: type || 'dot', r: 12, name }); }
   function chapterPin() {
     pins.length = 0;
     const cc = S.ch;
-    if (cc == 1 || cc == 3) { const q = CAST[1].at(); setPin(q.x, q.z, '#ffd24a', true, 22); }
-    else if (cc == 2) { setPin(); for (const er of ERS) if (!er.done) addPin(er.x, er.z, '#ffd24a'); }
-    else if (cc == 4) { const q = CAST[2].at(); setPin(q.x, q.z, '#ff5aef', true, 22); }
+    if (cc == 1 || cc == 3) { const q = CAST[1].at(); setPin(q.x, q.z, '#ffd24a', true, 22, 'Kiosco de Marcos'); }
+    else if (cc == 2) { setPin(); for (const er of ERS) if (!er.done) addPin(er.x, er.z, '#ffd24a', 'dot', er.n); }
+    else if (cc == 4) { const q = CAST[2].at(); setPin(q.x, q.z, '#ff5aef', true, 22, 'Club Neón · Elena'); }
     else if (cc == 5) {
-      if (!S.flags.hasDossier) setPin(dossier.position.x, dossier.position.z, '#ffd24a', true, 14);
-      else { const q = CAST[3].at(); setPin(q.x, q.z, '#3dff9a', true, 20) }
+      if (!S.flags.hasDossier) setPin(dossier.position.x, dossier.position.z, '#ffd24a', true, 14, 'Dossier');
+      else { const q = CAST[3].at(); setPin(q.x, q.z, '#3dff9a', true, 20, 'Clínica · Vera') }
     }
-    else if (cc == 6) { setPin(WHITEBOX.x, WHITEBOX.z, '#3dff9a', true, 18); }
+    else if (cc == 6) { setPin(WHITEBOX.x, WHITEBOX.z, '#3dff9a', true, 18, 'El contenedor'); }
     else if (cc == 7) {
       const qA = CAST[4].at(), qE = CAST[2].at();
-      if (S.side == 'elena') setPin(qE.x, qE.z, '#ff5aef', true, 22);
-      else if (S.side == 'alcaide') setPin(qA.x, qA.z, '#9a6bff', true, 22);
-      else { setPin(); addPin(qA.x, qA.z, '#9a6bff', 'sq'); addPin(qE.x, qE.z, '#ff5aef', 'sq'); }
+      if (S.side == 'elena') setPin(qE.x, qE.z, '#ff5aef', true, 22, 'Club Neón · Elena');
+      else if (S.side == 'alcaide') setPin(qA.x, qA.z, '#9a6bff', true, 22, 'Sgto. Alcaide');
+      else { setPin(); addPin(qA.x, qA.z, '#9a6bff', 'sq', 'Sgto. Alcaide'); addPin(qE.x, qE.z, '#ff5aef', 'sq', 'Club Neón · Elena'); }
     }
-    else if (cc == 8) { setPin(PIER.cx, PIER.cz, '#27e6ff', true, 24); }
+    else if (cc == 8) { setPin(PIER.cx, PIER.cz, '#27e6ff', true, 24, 'Muelle de Colina'); }
     else setPin();
-    if (EV.market.on) addPin(EV.market.x, EV.market.z, '#ff5a7a');
-    if (EV.black.active) addPin(EV.black.x, EV.black.z, '#9a6bff', 'sq');
+    if (EV.market.on) addPin(EV.market.x, EV.market.z, '#ff5a7a', 'dot', 'Mercadillo ambulante');
+    if (EV.black.active) addPin(EV.black.x, EV.black.z, '#9a6bff', 'sq', 'Apagón del barrio');
   }
 
   function near(list, x, z, fb) {
@@ -671,6 +673,18 @@
 
   if (S.ch === 0) chip();
   // sonda de depuracion (pruebas y soporte)
+  // datos para el mapa: solo lo que la historia ya considera visible o descubrible
+  NC.sto.actors = function () {
+    return CAST.filter(c => { try { return c.vis(); } catch (e) { return false; } })
+      .map(c => { const p = c.at(); return { id: c.id, n: c.n, job: c.job, x: p.x, z: p.z }; });
+  };
+  NC.sto.places = function () {
+    // el puerto y el muelle no salen en el mapa hasta que el jugador pasa cerca (descubrimiento) o la historia los toca
+    return [
+      { id: 'port', n: 'Puerto Viejo · muelle de carga', sub: 'Dársena del puerto', x: PORT.pos.x, z: PORT.pos.z, discover: !(S.ch >= 5 || S.done) },
+      { id: 'pier', n: 'Muelle de Colina', sub: 'Pasarela sobre el mar', x: PIER.cx, z: PIER.cz, discover: !(S.ch >= 8 || S.done) }
+    ];
+  };
   NC.sto.debug = {
     S: function () { return S; },
     reset: function () {
@@ -679,9 +693,7 @@
       NC.log('historia reiniciada (debug)');
     },
     cast: function () { return CAST.map(c => ({ id: c.id, at: c.at(), vis: c.vis(), have: !!c.h, ok: c.h ? c.h.g.visible : null, x: c.h ? Math.round(c.h.g.position.x) : null, z: c.h ? Math.round(c.h.g.position.z) : null })); },
-    ev: function () { return { market: EV.market.on, black: EV.black.active }; },
-    mkt: function () { return EV.market; },
-    blk: function () { return EV.black; }
+    ev: function () { return { market: EV.market.on, black: EV.black.active }; }
   };
   NC.log('historia lista · capitulo ' + S.ch + ' / 8 · barrios y eventos activos');
 })();

@@ -1,4 +1,4 @@
-﻿/* Neon Coast - comercios completos: registradoras, letreros ABIERTO, interior iluminado,
+/* Neon Coast - comercios completos: registradoras, letreros ABIERTO, interior iluminado,
    estanterias de fondo, posters, neveras y suelo de concesionarios */
 (function () {
   'use strict';
@@ -45,13 +45,13 @@
   const lampGeo = new THREE.BoxGeometry(2.4, .1, .55);
   const lampMat = new THREE.MeshBasicMaterial({ color: 0xfff6dd });
   function lampMesh(x, z) {
-    const L = new T.Mesh(lampGeo, lampMat);
+    const L = new THREE.Mesh(lampGeo, lampMat);
     L.position.set(x, 4.05, z);
     // carcasa y tirantes: la luminaria cuelga del techo, no flota como una barra suelta
-    const carcasa = new T.Mesh(new T.BoxGeometry(2.6, .22, .72), new T.MeshStandardMaterial({ color: 0x2b3040, roughness: .6, metalness: .3 }));
+    const carcasa = new THREE.Mesh(new THREE.BoxGeometry(2.6, .22, .72), new THREE.MeshStandardMaterial({ color: 0x2b3040, roughness: .6, metalness: .3 }));
     carcasa.position.set(x, 4.2, z); carcasa.castShadow = true; scene.add(carcasa);
     for (const sg of [-1, 1]) {
-      const tirante = new T.Mesh(new T.CylinderGeometry(.03, .03, .5, 6), new T.MeshStandardMaterial({ color: 0x2b3040, roughness: .6 }));
+      const tirante = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, .5, 6), new THREE.MeshStandardMaterial({ color: 0x2b3040, roughness: .6 }));
       tirante.position.set(x + sg * 1.05, 4.55, z); scene.add(tirante);
     }
     scene.add(L);
@@ -70,7 +70,7 @@
       const sh = new THREE.Mesh(new THREE.BoxGeometry(9.2, .08, .55), wood);
       sh.position.set(x, ry, zc); sh.castShadow = true; scene.add(sh);
     });
-    const EMO = ['ðŸ', 'ðŸ”«', 'ðŸ§¨', 'ðŸ“¦', 'ðŸ“¦', 'ðŸ“¦', 'ðŸ©¹', 'ðŸ©¹', 'ðŸ¦º', 'ðŸ”§', 'âš™ï¸', 'ðŸŽ¨', 'â˜•', 'ðŸŽ¨', 'ðŸš¬', 'ðŸ '];
+    const EMO = ['🏏', '🔫', '🧨', '📦', '📦', '📦', '🩹', '🩹', '🦺', '🔧', '⚙️', '🎨', '☕', '🎨', '🚬', '🏠'];
     const rest = stock.slice(6).concat(stock.slice(0, 2));
     rest.slice(0, 6).forEach((gi, k) => {
       if (gi === undefined || !SHOP[gi] || shopIdx === undefined) return;
@@ -78,7 +78,7 @@
       const ry = rows[k % 2] + .27;
       const bx = new THREE.Mesh(new THREE.BoxGeometry(.42, .38, .34), new THREE.MeshStandardMaterial({ color: pick([0xd8d3e8, 0xe8d9c2, 0xcfe8dd, 0xe8cfd9]), roughness: .6 }));
       bx.position.set(x + off, ry, zc); bx.castShadow = true; scene.add(bx);
-      const ic = new THREE.Mesh(new THREE.PlaneGeometry(.32, .32), new THREE.MeshBasicMaterial({ map: emj(EMO[gi] || 'ðŸ›’'), transparent: true }));
+      const ic = new THREE.Mesh(new THREE.PlaneGeometry(.32, .32), new THREE.MeshBasicMaterial({ map: emj(EMO[gi] || '🛒'), transparent: true }));
       ic.position.set(x + off, ry, zc + .2); scene.add(ic);
       const ic2 = ic.clone(); ic2.rotation.y = PI; ic2.position.z = zc - .2; scene.add(ic2);
     });
@@ -86,7 +86,7 @@
   }
 
   // poster de pared con texto de tienda
-  const POSTERS = [['REBAJAS 50%', '#ff5a7a'], ['CERVEZA FRÃA', '#27e6ff'], ['ABIERTO 24H', '#3dff9a'], ['NEON SPORT', '#ffd24a'], ['PIZZA ARTESANA', '#ff8a3a'], ['SURF & SUN', '#8a5cff']];
+  const POSTERS = [['REBAJAS 50%', '#ff5a7a'], ['CERVEZA FRÍA', '#27e6ff'], ['ABIERTO 24H', '#3dff9a'], ['NEON SPORT', '#ffd24a'], ['PIZZA ARTESANA', '#ff8a3a'], ['SURF & SUN', '#8a5cff']];
   function poster(x, y, z, rotY, i) {
     const q = document.createElement('canvas'); q.width = 128; q.height = 88;
     const g = q.getContext('2d');
@@ -96,7 +96,7 @@
     g.fillStyle = '#fff'; g.font = 'bold 15px sans-serif'; g.textAlign = 'center';
     g.fillText(POSTERS[i % POSTERS.length][0], 64, 29);
     g.fillStyle = '#222'; g.font = '11px sans-serif';
-    g.fillText('NEON COAST Â· TEMPORADA', 64, 58);
+    g.fillText('NEON COAST · TEMPORADA', 64, 58);
     g.strokeStyle = '#22222a'; g.lineWidth = 3; g.strokeRect(3, 3, 122, 82);
     const t = new THREE.CanvasTexture(q); t.encoding = THREE.sRGBEncoding;
     const m = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 1.3), new THREE.MeshBasicMaterial({ map: t }));
@@ -147,7 +147,7 @@
       // posters en las paredes laterales
       poster(s.x - 7.15, 2.2, zc + 2.6, PI / 2, si);
       poster(s.x + 7.15, 2.2, zc + .4, -PI / 2, si + 3);
-      // nevera en SÃºper y General
+      // nevera en Súper y General
       if (s.type == 'Super' || s.type == 'General') fridge(s.x - 6.3, zc - 3.4);
     } else {
       // kioscos: dependiente sobre la acera y registradora de mostrador
@@ -205,5 +205,5 @@
     if (!s.floor && s.tx !== undefined) s.h.g.position.y = Math.max(.35, Math.max(0, gh(s.tx, s.tz))) + .03;
   });
 
-  NC.log('shops: ' + shops.length + ' comercios ambientados Â· ' + carShops.length + ' concesionarios');
+  NC.log('shops: ' + shops.length + ' comercios ambientados · ' + carShops.length + ' concesionarios');
 })();

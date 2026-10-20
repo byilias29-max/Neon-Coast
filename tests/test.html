@@ -1,0 +1,34 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+:root{--ink:#fff7ea;--glass:rgba(21,13,58,.66);--hot:#ff5a7a;--cyan:#27e6ff}
+html,body{margin:0;height:100%;background:#150d3a;color:var(--ink);font:14px sans-serif}
+.p{position:absolute;background:var(--glass);border-radius:12px;padding:8px 12px}
+#mmw{left:14px;bottom:14px;padding:6px;border-radius:50%}#mm{display:block;width:150px;height:150px;border-radius:50%}
+#wp{left:14px;bottom:182px;display:none}
+</style></head><body>
+<canvas id="c" width="10" height="10"></canvas>
+<div class="p" id="mmw"><canvas id="mm" width="150" height="150"></canvas></div><div class="p" id="wp"></div>
+<script>
+// ---- globales que el juego real declara en index.html (mismos nombres, mismas formulas) ----
+const $=id=>document.getElementById(id), PI=Math.PI;
+const CELL=76,R=16,B=60,H=5,EXT=H*CELL+CELL/2;
+const slabL=[];for(let i=-H;i<H;i++)for(let j=-H;j<H;j++)slabL.push([(i+.5)*CELL,(j+.5)*CELL]);
+const park={x:38,z:114};
+const boxes=[];for(const p of slabL){boxes.push({x:p[0]+12,z:p[1]-8,hw:11,hd:9},{x:p[0]-14,z:p[1]+12,hw:9,hd:8});}
+const shops=[{x:300,z:-300,name:'Super NE',type:'Super'},{x:-300,z:260,name:'Todo SO',type:'General'},{x:-200,z:-250,name:'Armeria NO',type:'Armeria'},{x:150,z:300,name:'Taller SE',type:'Taller'}];
+const carShops=[{x:-100,z:-100,name:'AutoCosta 1'}], hotels=[{x:EXT+16,z:-60+10,name:'HOTEL MIRAMAR'}], bars=[{x:EXT+8,z:-16.6}];
+const doors=[{x:EXT+10,z:-12,tx:EXT+30,tz:-146,label:'Club Neón'},{x:EXT+30,z:-143,tx:0,tz:0,label:'Salir'}];
+const CLINIC={x:EXT+20,z:44}, ball={x:EXT+24,z:0}, cops=[], ai=[];
+let running=true,paused=false,started=true,mapBig=false,wp=null,frame=0,speed=0,timeScale=1;
+const P={x:4,z:-30,th:0,foot:true,fx:50,fz:60,apt:0,dying:false,busted:false}, cam={yaw:0,pitch:.3}, keys={}, inv={open:false}, cn=$('c');
+const tgt={x:EXT+18,z:0,on:true}; let rtPts=[[50,60],[76,60],[76,0],[EXT+18,0]];
+const wpBeacon={position:{set(){}},visible:false};
+const mis={m:0,s:0}; const curM=()=>({n:'Bienvenida',s:[{t:'Llega a la playa (este)'}]});
+function beep(){} function toast(){}
+const mg=$('mm').getContext('2d'); function mini(){}
+window.NCH={x:EXT+11,z:117};
+</script>
+<script src="../src/core.js"></script>
+<script src="sto_zone_snippet.js"></script>
+<script src="../src/nav.js"></script>
+<script src="../src/map.js"></script>
+</body></html>
