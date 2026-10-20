@@ -551,7 +551,7 @@ roomWalls(EXT+30,150,16,12,4.5,0x3a3230);
  const tv=new THREE.Mesh(new THREE.BoxGeometry(3,1.8,.3),new THREE.MeshStandardMaterial({color:0x111111}));tv.position.set(EXT+30,2.4,150+5.6);scene.add(tv);
  const gl=new THREE.Mesh(new THREE.PlaneGeometry(2.6,1.4),new THREE.MeshBasicMaterial({color:0x8fd1ff}));gl.position.set(EXT+30,2.4,150+5.4);gl.rotation.y=PI;scene.add(gl);
  boxes.push({x:EXT+27,z:148,hw:2.2,hd:2.7},{x:EXT+32,z:153,hw:2.7,hd:1.2})}
-mkDoor(bars[0].x+4.5,bars[0].z+2.8,'Club Neón',EXT+30,-146);mkDoor(EXT+30,-143.4,'Salir',bars[0].x+4.5,bars[0].z+4.5);
+mkDoor(EXT+30,-144.3,'Club Neón',EXT+30,-147);mkDoor(EXT+30,-155.6,'Salir',EXT+30,-141.5);
 mkDoor(hotels[0].x-5,hotels[0].z+1,'Apartamento',EXT+30,154);
 const CLINIC={x:EXT+20,z:44};
 {const M=new THREE.MeshStandardMaterial({color:0xe8e8e8,roughness:.85}),E=(g,m,x,y,z)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(...g),m);o.position.set(x,y,z);scene.add(o);return o};
@@ -1089,8 +1089,8 @@ updAI();car.position.set(P.x,P.foot?0:Math.max(-.9,P.cgy),P.z);rd.shadowMap.need
 <script src="src/missions.js?v=9c"></script>
 <script src="src/wheel.js?v=9c"></script>
 <script src="src/nav.js?v=9g"></script>
-<script src="src/map.js?v=9g"></script>
-<script src="src/mapa.js?v=9e"></script>
+<script src="src/map.js?v=9h"></script>
+<script src="src/mapa.js?v=9h"></script>
 <script src="src/districts.js?v=9c"></script>
 <script src="src/vegetacion.js?v=9e"></script>
 <script src="src/carjack.js?v=9c"></script>
@@ -1103,8 +1103,8 @@ updAI();car.position.set(P.x,P.foot?0:Math.max(-.9,P.cgy),P.z);rd.shadowMap.need
 <script src="src/gente.js?v=9e"></script>
 <script src="src/character.js?v=9g"></script>
 <script src="src/policia.js?v=9g"></script>
-<script src="src/puertas.js?v=9f"></script>
+<script src="src/puertas.js?v=9h"></script>
 <script src="src/pausa.js?v=9f"></script>
-<script src="src/interfaz.js?v=9e"></script>
+<script src="src/interfaz.js?v=9h"></script>
 <script src="src/boot.js?v=9c"></script>
 </body></html>

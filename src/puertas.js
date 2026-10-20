@@ -163,7 +163,12 @@
       if (h && el) {
         el.style.display = 'flex';
         const abierta = h.target > .5;
-        txt.textContent = h.kind === 'portal' ? (abierta ? 'Entrar' : 'Abrir puerta') : (abierta ? 'Cerrar puerta' : 'Abrir puerta');
+        const lab = (h.rec && h.rec.label) ? h.rec.label : '';
+        if (h.kind === 'portal') {
+          txt.textContent = abierta ? 'Entrar' : (lab ? 'Abrir · ' + lab : 'Abrir puerta');
+        } else {
+          txt.textContent = abierta ? 'Cerrar puerta' : 'Abrir puerta';
+        }
       } else if (el) el.style.display = 'none';
     } catch (e) { }
   });

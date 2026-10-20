@@ -13,7 +13,7 @@
   const COL = { ground: '#2a2540', sea: '#0f6f8f', sand: '#e8cfa0', slab: '#3d3560', road: '#756e98', roadLine: 'rgba(255,255,255,.18)',
     park: '#2f9a52', bld: '#5b4b8c', bldEdge: 'rgba(8,4,24,.55)', wp: '#ff5aef', mission: '#27e6ff' };
   const WORLD = { x0: -EXT - 60, x1: EXT + 130, z0: -EXT - 60, z1: EXT + 60 };
-  const MINI_K = .5;                         // px por unidad de mundo en el minimapa (fijo)
+  let MINI_K = .5;                         // px por unidad de mundo en el minimapa (ajustable al ampliar)
   const DPR = () => Math.min(window.devicePixelRatio || 1, 2);
 
   // ================================================================ caché de edificios (huellas) sin interiores teletransportados
@@ -161,12 +161,22 @@
   // ================================================================ MINIMAPA (HUD, sin interacción)
   const mmEl = document.getElementById('mm');
   NC.css('#mmw,#mm{pointer-events:none !important;cursor:default}');
-  const mmCtx = mmEl.getContext('2d'), MS = 150;
+  const mmCtx = mmEl.getContext('2d'); let MS = 150;
   (function fixSize() { const d = DPR(); mmEl.width = mmEl.height = Math.round(MS * d); mmEl.style.width = mmEl.style.height = MS + 'px'; })();
+
+// ---------- minimapa ampliable (tecla M): cambia tamano y escala sin tocar el mapa grande ----------
+Nav.setMini = function (size, k) {
+  if (size) MS = size;
+  if (k) MINI_K = k;
+  try { const d = DPR(); mmEl.width = mmEl.height = Math.round(MS * d); mmEl.style.width = mmEl.style.height = MS + 'px'; } catch (e) { }
+  try { if (typeof window.mini === 'function' && running) window.mini(P.foot ? P.fx : P.x, P.foot ? P.fz : P.z, P.foot ? cam.yaw : P.th); } catch (e) { }
+  return { size: MS, k: MINI_K };
+};
 
   function drawMini(px, pz, th) {
     const dpr = mmEl.width / MS, ctx = mmCtx, C = MS / 2;
     const m = Proj.heading(px, pz, th, MINI_K, MS, MS);
+    try { Nav._lastMini = m; Nav._lastMiniSize = MS; } catch (e) { }
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, mmEl.width, mmEl.height);
     ctx.save(); setScreen(ctx, dpr); ctx.beginPath(); ctx.arc(C, C, C - 1, 0, 7); ctx.clip();
     paintTerrain(ctx, m, MS, MS, dpr, MINI_K, false);

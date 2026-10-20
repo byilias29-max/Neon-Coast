@@ -1,138 +1,122 @@
-/* Neon Coast - mapa: icono real del coche del jugador y flechas de destino fuera de
-   pantalla (direccion correcta, dentro de los limites) en minimapa y mapa grande. */
+/* Neon Coast - minimapa e interfaz:
+   - registra el mapa grande (#nbm) para que el cursor personalizado NO desaparezca
+   - la tecla M amplía/reduce el minimapa (el mapa completo se abre desde el menu)
+   - icono del coche del jugador en el minimapa y en el mapa grande
+   - el contenedor del minimapa crece con el canvas (sin recortarlo)                */
 (function () {
   'use strict';
   if (!window.NC) return;
+  const NC = window.NC;
 
-  // ---------- capturar la transformacion del mapa grande ----------
-  let bigT = null;
+  // ---------- 1) el cursor personalizado vive mientras haya interfaz ----------
   try {
-    const bmc = document.getElementById('bm').getContext('2d');
-    const orig = bmc.setTransform.bind(bmc);
-    bmc.setTransform = function (a, b, c, d, e, f) { bigT = [a, b, c, d, e, f]; return orig(a, b, c, d, e, f); };
+    if (NC.ui) {
+      const ids = ['nbm', 'nbView', 'nbSideBox', 'shopUI', 'inv', 'pause', 'dlg', 'mDlg', 'mKey', 'mNote', 'gDlg', 'wheelUI', 'rwheel', 'phone', 'msgs', 'terminal'];
+      ids.forEach(id => { const el = document.getElementById(id); if (el) NC.ui.register(el); });
+    }
+  } catch (e) { }
+  // si el mapa se crea despues, lo registramos cuando aparezca
+  try {
+    if (NC.ui) {
+      const mo = new MutationObserver(() => {
+        const el = document.getElementById('nbm'); if (el) NC.ui.register(el);
+      });
+      mo.observe(document.body, { childList: true, subtree: true });
+    }
   } catch (e) { }
 
-  // ---------- coche del jugador ----------
-  function playerCar() {
+  // ---------- 2) M amplía el minimapa; el mapa completo solo desde el menu ----------
+  const MINI = { grande: false, sz: 150, k: .5, szB: 330, kB: .30 };
+  function aplicarMini() {
     try {
-      if (typeof P !== 'undefined' && P && P.car && P.car.position) return P.car;
-      if (typeof car !== 'undefined' && car && car.position) return car;
+      if (NC.Nav && NC.Nav.setMini) NC.Nav.setMini(MINI.grande ? MINI.szB : MINI.sz, MINI.grande ? MINI.kB : MINI.k);
+      const w = document.getElementById('mmw');
+      if (w) { w.classList.toggle('mmbig', MINI.grande); w.style.width = ''; w.style.height = ''; }
     } catch (e) { }
-    return null;
   }
-  function carState() {
-    const c = playerCar(); if (!c) return null;
-    let th = c.rotation ? c.rotation.y : 0;
-    try { if (typeof P !== 'undefined' && P && !P.foot && typeof P.th === 'number') th = P.th; } catch (e) { }
-    return { x: c.position.x, z: c.position.z, th };
+  function mapaAbierto() {
+    const el = document.getElementById('nbm');
+    return !!(el && el.style.display === 'flex');
   }
+  function toggleMini() {
+    MINI.grande = !MINI.grande;
+    aplicarMini();
+    try { toast(MINI.grande ? 'Minimapa ampliado' : 'Minimapa normal'); } catch (e) { }
+  }
+  // en document con captura: se adelanta al listener del juego (que esta en window)
+  document.addEventListener('keydown', e => {
+    if (e.code !== 'KeyM' || e.repeat) return;
+    if (mapaAbierto()) { try { window.toggleMap(false); } catch (e2) { } e.preventDefault(); e.stopImmediatePropagation(); return; }
+    e.preventDefault(); e.stopImmediatePropagation();
+    toggleMini();
+  }, true);
+  // el minimapa ampliado no es interactivo ni mueve el mapa grande
+  NC.mini = { toggle: toggleMini, get grande() { return MINI.grande; } };
 
-  // ---------- dibujo del icono de coche ----------
-  function drawCarIcon(g, x, y, ang, s, col) {
-    g.save(); g.translate(x, y); g.rotate(ang);
-    g.fillStyle = 'rgba(8,8,14,.85)';
-    g.beginPath(); g.roundRect ? g.roundRect(-4.5 * s, -7 * s, 9 * s, 14 * s, 2.4 * s) : g.rect(-4.5 * s, -7 * s, 9 * s, 14 * s); g.fill();
-    g.fillStyle = col || '#ffd24a';
-    g.beginPath(); g.roundRect ? g.roundRect(-3.4 * s, -6 * s, 6.8 * s, 12 * s, 2 * s) : g.rect(-3.4 * s, -6 * s, 6.8 * s, 12 * s); g.fill();
-    g.fillStyle = '#12141c';
-    g.beginPath(); g.roundRect ? g.roundRect(-2.4 * s, -3.4 * s, 4.8 * s, 3.4 * s, 1.2 * s) : g.rect(-2.4 * s, -3.4 * s, 4.8 * s, 3.4 * s); g.fill();
-    g.fillStyle = '#fff3c4';
-    g.fillRect(-2.6 * s, -6.2 * s, 5.2 * s, 1.5 * s);
-    g.restore();
+  // ---------- 3) icono del coche en el minimapa ----------
+  function estadoCoche() {
+    try {
+      const c = (P && P.car && P.car.position) ? P.car : (typeof car !== 'undefined' && car && car.position ? car : null);
+      if (!c) return null;
+      let th = c.rotation ? c.rotation.y : 0;
+      try { if (P && !P.foot && typeof P.th === 'number') th = P.th; } catch (e) { }
+      return { x: c.position.x, z: c.position.z, th };
+    } catch (e) { return null; }
   }
-
-  // ---------- flecha de borde ----------
-  function edgeArrow(g, cx, cy, radius, tx, ty, color, label) {
-    const dx = tx - cx, dy = ty - cy, d = Math.hypot(dx, dy);
-    if (d <= radius) return false;
-    const a = Math.atan2(dy, dx);
-    const px = cx + Math.cos(a) * (radius - 12), py = cy + Math.sin(a) * (radius - 12);
-    g.save(); g.translate(px, py); g.rotate(a);
-    g.fillStyle = 'rgba(10,10,20,.8)';
-    g.beginPath(); g.arc(0, 0, 10, 0, 7); g.fill();
-    g.fillStyle = color;
-    g.beginPath(); g.moveTo(7, 0); g.lineTo(-4, 5.5); g.lineTo(-1.6, 0); g.lineTo(-4, -5.5); g.closePath(); g.fill();
-    g.restore();
-    if (label) {
-      g.font = 'bold 9px sans-serif'; g.textAlign = 'center'; g.fillStyle = '#fff';
-      g.fillText(label, px, py + 3.5);
-    }
-    return true;
+  function dibujarCoche(ctx, m, dpr, size) {
+    const c = estadoCoche(); if (!c || !m) return;
+    const sx = m[0] * c.x + m[2] * c.z + m[4];
+    const sy = m[1] * c.x + m[3] * c.z + m[5];
+    const C = size / 2, R = Math.hypot(sx - C, sy - C);
+    if (R > C - 6) return;                       // fuera de la vista
+    ctx.save();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.translate(sx, sy);
+    ctx.rotate(c.th - (typeof P !== 'undefined' && P.foot ? (cam.yaw || 0) : (P.th || 0)) + (typeof cam !== 'undefined' ? (cam.yaw || 0) : 0) * 0);
+    ctx.fillStyle = 'rgba(8,8,14,.85)';
+    ctx.beginPath(); ctx.arc(0, 0, size / 22, 0, 7); ctx.fill();
+    ctx.fillStyle = '#ffd24a';
+    ctx.beginPath();
+    ctx.moveTo(0, -size / 26); ctx.lineTo(size / 30, size / 26); ctx.lineTo(0, size / 40); ctx.lineTo(-size / 30, size / 26);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
   }
-
-  // ---------- MINI MAPA ----------
   const _mini = window.mini;
   if (typeof _mini === 'function') {
     window.mini = function (px, pz, th) {
-      _mini.apply(this, arguments);
+      const r = _mini.apply(this, arguments);
       try {
-        const g = document.getElementById('mm').getContext('2d');
-        const S = g.canvas.width, C = S / 2, s = window.miniBig ? .78 : .5, c = Math.cos(th), n = Math.sin(th);
-        const W2S = (x, z) => ({ X: -c * s * (x - px) + n * s * (z - pz) + C, Y: n * s * (x - px) - c * s * (z - pz) + C });
-        // coche
-        const cs = carState();
-        if (cs) {
-          const p = W2S(cs.x, cs.z);
-          const dx = -c * Math.sin(cs.th) + n * Math.cos(cs.th);
-          const dy = n * Math.sin(cs.th) - c * Math.cos(cs.th);
-          g.save(); g.beginPath(); g.arc(C, C, C - 2, 0, 7); g.clip();
-          drawCarIcon(g, p.X, p.Y, Math.atan2(dy, dx), window.miniBig ? 1.5 : 1, '#ffd24a');
-          g.restore();
-          // flecha en el borde si el coche queda fuera
-          const dist = Math.hypot(p.X - C, p.Y - C);
-          if (dist > C - 14) {
-            const a = Math.atan2(p.Y - C, p.X - C);
-            const px2 = C + Math.cos(a) * (C - 13), py2 = C + Math.sin(a) * (C - 13);
-            g.save(); g.translate(px2, py2); g.rotate(a);
-            g.fillStyle = '#ffd24a'; g.beginPath(); g.moveTo(8, 0); g.lineTo(-5, 6); g.lineTo(-2, 0); g.lineTo(-5, -6); g.closePath(); g.fill();
-            g.restore();
-          }
+        const m = NC.Nav && NC.Nav._lastMini, size = (NC.Nav && NC.Nav._lastMiniSize) || 150;
+        if (m) {
+          const el = document.getElementById('mm'), ctx = el.getContext('2d');
+          const dpr = el.width / size;
+          dibujarCoche(ctx, m, dpr, size);
         }
-        // destinos fuera de pantalla: objetivo de la mision y waypoint
-        g.save(); g.beginPath(); g.arc(C, C, C - 2, 0, 7); g.clip();
-        const R = C - 13;
-        try {
-          if (tgt && tgt.on) { const p = W2S(tgt.x, tgt.z); edgeArrow(g, C, C, R, p.X, p.Y, '#27e6ff'); }
-          if (typeof geo !== 'undefined' && geo.dest && geo.dest.on) { const p = W2S(geo.dest.x, geo.dest.z); edgeArrow(g, C, C, R, p.X, p.Y, '#3dff9a', 'D'); }
-        } catch (e) { }
-        g.restore();
       } catch (e) { }
+      return r;
     };
   }
 
-  // ---------- MAPA GRANDE ----------
+  // ---------- 4) icono del coche en el mapa grande ----------
   NC.hooks.post.push(() => {
     try {
-      const bm = document.getElementById('bigMap');
-      if (!bm || !bm.classList.contains('on') || !bigT) return;
-      const g = document.getElementById('bm').getContext('2d');
-      const S = 1024, C = S / 2;
-      const W2S = (x, z) => ({ X: bigT[0] * x + bigT[2] * z + bigT[4], Y: bigT[1] * x + bigT[3] * z + bigT[5] });
-      g.setTransform(1, 0, 0, 1, 0, 0);
-      // coche
-      const cs = carState();
-      if (cs) {
-        const p = W2S(cs.x, cs.z);
-        drawCarIcon(g, p.X, p.Y, cs.th - PI / 2, 1.5, '#ffd24a');
-      }
-      // flechas de destino fuera del lienzo
-      const m = 22;
-      try {
-        if (tgt && tgt.on) {
-          const p = W2S(tgt.x, tgt.z);
-          if (p.X < m || p.X > S - m || p.Y < m || p.Y > S - m) {
-            const a = Math.atan2(p.Y - C, p.X - C);
-            const x = Math.max(m, Math.min(S - m, C + Math.cos(a) * (S / 2 - m)));
-            const y = Math.max(m, Math.min(S - m, C + Math.sin(a) * (S / 2 - m)));
-            g.save(); g.translate(x, y); g.rotate(a);
-            g.fillStyle = 'rgba(10,10,20,.8)'; g.beginPath(); g.arc(0, 0, 15, 0, 7); g.fill();
-            g.fillStyle = '#27e6ff'; g.beginPath(); g.moveTo(11, 0); g.lineTo(-7, 8); g.lineTo(-3, 0); g.lineTo(-7, -8); g.closePath(); g.fill();
-            g.restore();
-          }
-        }
-      } catch (e) { }
+      const root = document.getElementById('nbm'); if (!root || root.style.display !== 'flex') return;
+      const cv = document.getElementById('nbc'); if (!cv) return;
+      const ctx = cv.getContext('2d');
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      // el mapa grande pinta en pixeles de pantalla: recuperamos su ultima matriz
+      const m = NC.Nav && NC.Nav._lastBig;
+      if (!m) return;
+      const c = estadoCoche(); if (!c) return;
+      const sx = m[0] * c.x + m[2] * c.z + m[4], sy = m[1] * c.x + m[3] * c.z + m[5];
+      ctx.save(); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.fillStyle = 'rgba(8,8,14,.85)';
+      ctx.beginPath(); ctx.arc(sx, sy, 9, 0, 7); ctx.fill();
+      ctx.fillStyle = '#ffd24a';
+      ctx.beginPath(); ctx.arc(sx, sy, 6, 0, 7); ctx.fill();
+      ctx.restore();
     } catch (e) { }
   });
 
-  NC.log('mapa: icono de coche y flechas de destino fuera de pantalla');
+  NC.log('minimapa: tecla M amplia, cursor registrado e icono del coche');
 })();

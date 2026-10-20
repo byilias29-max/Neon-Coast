@@ -51,10 +51,12 @@
 
   /* ---------- minimapa ---------- */
   #mmw{
-    position:absolute;top:64px;right:18px;width:168px;height:168px;border-radius:50%;overflow:hidden;
-    border:1px solid var(--line2);box-shadow:var(--sh),0 0 0 4px rgba(8,6,20,.35);background:#120e26}
-  #mmw.minibig{width:338px;height:338px}
-  #mm{display:block;width:100%;height:100%}
+    position:absolute;top:64px;right:18px;width:auto;height:auto;border-radius:50%;overflow:hidden;
+    border:1px solid var(--line2);box-shadow:var(--sh),0 0 0 4px rgba(8,6,20,.35);background:#120e26;
+    transition:width .25s cubic-bezier(.2,.8,.2,1),height .25s cubic-bezier(.2,.8,.2,1),top .25s ease}
+  #mm{display:block}
+  #mmw.mmbig{top:64px;right:18px}
+  #mmw canvas{transition:width .25s cubic-bezier(.2,.8,.2,1),height .25s cubic-bezier(.2,.8,.2,1)}
   #wp{
     position:absolute;right:18px;top:240px;max-width:190px;text-align:right;font-size:var(--fss);color:var(--muted);
     background:var(--pane);border:1px solid var(--line);border-radius:var(--r2);padding:5px 10px;pointer-events:none}
