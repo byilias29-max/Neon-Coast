@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#07090f">
+<title>ROADSTER CLICKER — pulsa el coche</title>
+<style>
+:root{
+  --red:#e82127; --red2:#ff4d3d; --cyan:#4cc9f0; --gold:#ffd24a;
+  --ink:#f2f5fa; --mute:#93a0b4; --bg:#07090f;
+  --glass:rgba(18,22,32,.72); --line:rgba(255,255,255,.09);
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--ink);
+  font:15px/1.45 "Trebuchet MS","Segoe UI",system-ui,sans-serif;
+  overscroll-behavior:none;user-select:none;-webkit-user-select:none}
+#sky{position:fixed;inset:0;display:block;z-index:0}
+
+#app{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;padding:12px;
+  gap:10px;max-width:1400px;margin:0 auto}
+
+/* ---------- cabecera ---------- */
+header{display:flex;align-items:center;gap:14px;flex:0 0 auto}
+.brand{display:flex;flex-direction:column;line-height:1}
+.brand h1{margin:0;font-size:clamp(19px,3.4vw,27px);font-style:italic;font-weight:800;letter-spacing:-.01em;
+  background:linear-gradient(92deg,#fff,#ff6b63 60%,#e82127);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand span{font-size:10px;letter-spacing:3px;color:var(--mute);font-weight:700;margin-top:3px}
+.hspace{flex:1}
+.chip{background:var(--glass);border:1px solid var(--line);border-radius:12px;padding:7px 13px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);text-align:center;min-width:92px}
+.chip i{display:block;font-style:normal;font-size:9px;letter-spacing:2px;color:var(--mute);font-weight:700}
+.chip b{font-size:18px;font-style:italic;font-weight:800}
+.chip.red b{color:var(--red2)}
+.chip.cyan b{color:var(--cyan)}
+.chip.gold b{color:var(--gold)}
+.iconbtn{width:42px;height:42px;border-radius:12px;background:var(--glass);border:1px solid var(--line);
+  color:var(--ink);font-size:18px;cursor:pointer;backdrop-filter:blur(8px);flex:0 0 auto}
+.iconbtn:active{transform:scale(.92)}
+
+/* ---------- layout ---------- */
+main{flex:1 1 auto;display:flex;gap:12px;min-height:0}
+.stage{flex:1 1 auto;position:relative;display:flex;flex-direction:column;gap:10px;min-width:0}
+.shop{flex:0 0 348px;display:flex;flex-direction:column;min-height:0;gap:8px}
+
+.panel{background:var(--glass);border:1px solid var(--line);border-radius:16px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 16px 44px #0007}
+
+/* ---------- escenario ---------- */
+#arena{flex:1 1 auto;position:relative;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;min-height:180px;
+  background:
+    radial-gradient(ellipse 60% 42% at 50% 88%,rgba(232,33,39,.20),transparent 70%),
+    radial-gradient(ellipse 70% 55% at 50% 100%,rgba(76,201,240,.10),transparent 70%)}
+#arena.shake{animation:shk .22s}
+@keyframes shk{0%,100%{transform:translate(0,0)}25%{transform:translate(-4px,3px)}50%{transform:translate(4px,-3px)}75%{transform:translate(-2px,-2px)}}
+#arena.shake svg{animation:shk .22s}
+
+#carHit{position:relative;cursor:pointer;display:block;width:min(560px,92%);touch-action:manipulation;
+  filter:drop-shadow(0 26px 26px #000a)}
+#carHit:focus-visible{outline:3px solid var(--cyan);outline-offset:10px;border-radius:20px}
+#carHit svg{width:100%;height:auto;display:block;overflow:visible}
+#carHit:active{cursor:pointer}
+#carHit.boost{animation:boost .3s cubic-bezier(.2,.9,.3,1)}
+@keyframes boost{0%{transform:translateX(0) scale(1)}30%{transform:translateX(16px) scale(1.02,.98)}100%{transform:translateX(0) scale(1)}}
+#carHit.squash{animation:sq .22s ease-out}
+@keyframes sq{0%{transform:scale(1,1)}40%{transform:scale(1.06,.93)}100%{transform:scale(1,1)}}
+#flames{opacity:0;transition:opacity .12s}
+#carHit.boost #flames{opacity:1}
+
+/* números flotantes */
+#floaters{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.flt{position:absolute;font-weight:800;font-style:italic;font-size:22px;color:#fff;
+  text-shadow:0 2px 10px #000c;animation:flt 1.05s cubic-bezier(.2,.9,.3,1) forwards}
+@keyframes flt{0%{transform:translate(-50%,0) scale(.7);opacity:0}
+  18%{transform:translate(-50%,-14px) scale(1.15);opacity:1}
+  100%{transform:translate(-50%,-88px) scale(.95);opacity:0}}
+.flt.gold{color:var(--gold);font-size:26px}
+
+/* cookie dorada */
+#golden{position:absolute;width:66px;height:66px;border-radius:50%;cursor:pointer;z-index:4;
+  display:none;align-items:center;justify-content:center;font-size:30px;
+  background:radial-gradient(circle at 34% 30%,#ffe79a,#ffc233 45%,#c98a00);
+  box-shadow:0 0 0 4px #ffd24a33,0 0 34px #ffd24a99,inset 0 -6px 12px #0004;
+  animation:popin .4s cubic-bezier(.2,1.6,.4,1), spin 6s linear infinite}
+#golden.show{display:flex}
+@keyframes popin{from{transform:scale(0) rotate(-90deg)}to{transform:scale(1) rotate(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* barra de estado inferior */
+.statusbar{flex:0 0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px}
+.statusbar .frenzy{color:var(--gold);font-weight:800;font-style:italic}
+.statusbar .hint{color:var(--mute);font-size:12.5px}
+.statusbar .hint b{color:var(--ink)}
+
+/* ---------- tienda ---------- */
+.tabs{display:flex;gap:6px;padding:8px 8px 0}
+.tab{flex:1;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--mute);
+  border-radius:10px;padding:9px 4px;font:inherit;font-size:12.5px;font-weight:800;letter-spacing:1.4px;cursor:pointer}
+.tab.on{background:linear-gradient(92deg,#e82127,#ff6b3d);color:#fff;border-color:transparent;box-shadow:0 6px 18px #e8212755}
+.tabbody{flex:1 1 auto;overflow-y:auto;padding:10px;display:none;flex-direction:column;gap:7px}
+.tabbody.on{display:flex}
+.tabbody::-webkit-scrollbar{width:8px}
+.tabbody::-webkit-scrollbar-thumb{background:#ffffff22;border-radius:8px}
+
+.mode{display:flex;gap:5px;padding:0 10px 8px}
+.mode button{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--mute);
+  border-radius:8px;padding:6px;font:inherit;font-size:11px;font-weight:800;letter-spacing:1px;cursor:pointer}
+.mode button.on{background:#ffffff1c;color:#fff;border-color:#ffffff40}
+
+.up{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:12px;
+  background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);transition:border-color .15s,background .15s}
+.up.afford{border-color:#e8212777;background:rgba(232,33,39,.10)}
+.up.locked{opacity:.34}
+.up .ico{width:38px;height:38px;flex:0 0 auto;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:19px;background:linear-gradient(140deg,#ffffff16,#ffffff06);border:1px solid rgba(255,255,255,.09)}
+.up .txt{flex:1 1 auto;min-width:0}
+.up .nm{font-size:13.5px;font-weight:800;display:flex;gap:6px;align-items:baseline}
+.up .nm em{font-style:normal;font-size:11px;color:var(--mute);font-weight:700}
+.up .ds{font-size:11.5px;color:var(--cyan);opacity:.9}
+.up .ds.gold{color:var(--gold)}
+.up button{flex:0 0 auto;min-width:82px;border:0;border-radius:10px;padding:9px 8px;font:inherit;font-size:13px;
+  font-weight:800;color:#fff;cursor:pointer;background:#2b3242;font-variant-numeric:tabular-nums}
+.up.afford button{background:linear-gradient(92deg,#e82127,#ff6b3d);box-shadow:0 4px 14px #e8212755}
+.up button:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+.up button:active{transform:scale(.95)}
+
+/* prestigio */
+.prestige{padding:16px;text-align:center;display:flex;flex-direction:column;gap:10px}
+.prestige h2{margin:0;font-size:19px;font-style:italic;letter-spacing:2px;color:var(--cyan)}
+.prestige p{margin:0;font-size:13px;color:var(--mute)}
+.prestige .big{font-size:40px;font-style:italic;font-weight:800;color:var(--gold)}
+.prestige .btn{border:0;border-radius:12px;padding:13px;font:inherit;font-weight:800;letter-spacing:1px;cursor:pointer;
+  background:linear-gradient(92deg,#1d6fa5,#4cc9f0);color:#04121c;box-shadow:0 8px 24px #4cc9f055}
+.prestige .btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+
+/* logros */
+.ach{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border-radius:11px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
+.ach.done{background:rgba(255,210,74,.10);border-color:#ffd24a55}
+.ach .ico{font-size:17px;filter:grayscale(1);opacity:.5}
+.ach.done .ico{filter:none;opacity:1}
+.ach b{display:block;font-size:13px}
+.ach span{font-size:11.5px;color:var(--mute)}
+.ach.done b{color:var(--gold)}
+
+.foot{display:flex;gap:8px;padding:8px 10px;align-items:center}
+.foot button{flex:1;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--mute);
+  border-radius:9px;padding:8px;font:inherit;font-size:11.5px;font-weight:700;letter-spacing:.6px;cursor:pointer}
+.foot button:active{transform:scale(.97)}
+.foot button.danger:hover{color:#ff8a80;border-color:#ff8a8055}
+
+/* ---------- toast ---------- */
+#toasts{position:fixed;left:50%;transform:translateX(-50%);top:calc(14px + var(--sat));z-index:20;
+  display:flex;flex-direction:column;gap:7px;align-items:center;pointer-events:none;width:min(94vw,420px)}
+.toast{background:rgba(20,24,34,.94);border:1px solid #ffd24a55;border-radius:12px;padding:9px 16px;
+  font-size:13px;font-weight:700;color:var(--gold);box-shadow:0 10px 30px #000a;
+  animation:tin .35s cubic-bezier(.2,1.5,.4,1),tout .4s 2.5s forwards}
+.toast.info{border-color:#4cc9f055;color:var(--cyan)}
+@keyframes tin{from{transform:translateY(-16px) scale(.9);opacity:0}to{transform:none;opacity:1}}
+@keyframes tout{to{opacity:0;transform:translateY(-10px)}}
+
+/* ---------- modal ---------- */
+.screen{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;padding:18px;
+  background:radial-gradient(ellipse at 50% 45%,rgba(40,60,110,.5),rgba(4,6,12,.94) 75%);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);overflow:auto}
+.screen.on{display:flex}
+.modal{width:min(480px,94vw);background:rgba(16,20,30,.96);border:1px solid var(--line);border-radius:20px;
+  padding:26px 24px;text-align:center;box-shadow:0 30px 80px #000c;animation:pop .34s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes pop{from{transform:scale(.88) translateY(14px);opacity:0}to{transform:none;opacity:1}}
+.modal h2{margin:0 0 6px;font-size:26px;font-style:italic;letter-spacing:1px}
+.modal p{margin:6px 0;color:var(--mute);font-size:14px}
+.modal .btn{border:0;border-radius:12px;padding:13px 30px;font:inherit;font-weight:800;letter-spacing:1px;cursor:pointer;
+  background:linear-gradient(92deg,#e82127,#ff6b3d);color:#fff;box-shadow:0 8px 24px #e8212755;margin-top:18px}
+.modal .btn.ghost{background:#ffffff14;border:1px solid var(--line);box-shadow:none;color:var(--ink);margin-left:8px}
+
+/* MODAL DE PRESTIGIO: el coche despega */
+#launch{position:fixed;inset:0;z-index:40;display:none;background:#03050a;overflow:hidden}
+#launch.on{display:block}
+#launch svg{position:absolute;left:50%;bottom:-6vh;width:min(520px,80vw);transform:translateX(-50%);
+  animation:fly 3.4s cubic-bezier(.4,0,.8,1) forwards}
+@keyframes fly{0%{transform:translateX(-50%) translateY(0) scale(1);opacity:1}
+  55%{transform:translateX(-50%) translateY(-38vh) scale(.62);opacity:1}
+  100%{transform:translateX(-50%) translateY(-120vh) scale(.16);opacity:0}}
+#launch .txt{position:absolute;left:0;right:0;top:38%;text-align:center;z-index:2}
+#launch .txt h2{font-size:clamp(26px,7vw,46px);font-style:italic;margin:0;
+  background:linear-gradient(92deg,#4cc9f0,#fff,#ffd24a);-webkit-background-clip:text;background-clip:text;color:transparent}
+#launch .txt p{color:var(--mute);letter-spacing:3px;font-size:13px}
+
+@media (max-width:900px){
+  main{flex-direction:column;overflow-y:auto}
+  .shop{flex:0 0 auto}
+  .tabbody{max-height:56vh}
+  #arena{min-height:240px;flex:0 0 300px}
+  .statusbar{gap:6px;padding:8px 10px}
+  .statusbar .chip{padding:4px 9px}
+  .statusbar .chip b{font-size:14px}
+  .statusbar .hint{flex:1 1 100%;font-size:12px}
+}
+@media (max-width:560px){
+  .chip{padding:6px 9px;min-width:74px}
+  .chip b{font-size:15px}
+  .brand span{display:none}
+  #app{padding:8px;gap:8px}
+}
+</style>
+</head>
+<body>
+<canvas id="sky"></canvas>
+
+<div id="app">
+  <header>
+    <div class="brand">
+      <h1>ROADSTER CLICKER</h1>
+      <span>PULSA EL COCHE · HAZ CLICLICLAR EL UNIVERSO</span>
+    </div>
+    <div class="hspace"></div>
+    <div class="chip red"><i>COOKIES</i><b id="hCookies">0</b></div>
+    <div class="chip cyan"><i>POR SEGUNDO</i><b id="hCps">0</b></div>
+    <div class="chip gold"><i>CRÉDITOS</i><b id="hCred">0</b></div>
+    <button class="iconbtn" id="btnSound" title="Sonido (M)">🔊</button>
+  </header>
+
+  <main>
+    <section class="stage">
+      <div class="panel" id="arena">
+        <div id="floaters"></div>
+        <div id="carHit" tabindex="0" role="button" aria-label="Pulsa el Tesla Roadster">
+          <svg id="car" viewBox="0 0 640 320" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="gBody" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ff7a72"/>
+                <stop offset="42%" stop-color="#e82127"/>
+                <stop offset="100%" stop-color="#780d13"/>
+              </linearGradient>
+              <linearGradient id="gBody2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ff9d95"/>
+                <stop offset="100%" stop-color="#b8151c"/>
+              </linearGradient>
+              <linearGradient id="gGlass" x1="0" y1="0" x2=".7" y2="1">
+                <stop offset="0%" stop-color="#dff3ff"/>
+                <stop offset="45%" stop-color="#5b8fb8"/>
+                <stop offset="100%" stop-color="#1b2e42"/>
+              </linearGradient>
+              <radialGradient id="gRim" cx="34%" cy="28%" r="78%">
+                <stop offset="0%" stop-color="#ffffff"/>
+                <stop offset="55%" stop-color="#b7bec8"/>
+                <stop offset="100%" stop-color="#69707a"/>
+              </radialGradient>
+              <linearGradient id="gTire" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#2b2f36"/>
+                <stop offset="100%" stop-color="#0c0e12"/>
+              </linearGradient>
+              <radialGradient id="gFlame" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#fff6c9"/>
+                <stop offset="38%" stop-color="#ffb347"/>
+                <stop offset="100%" stop-color="#ff3b1f" stop-opacity="0"/>
+              </radialGradient>
+              <radialGradient id="gGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#fffbe6"/>
+                <stop offset="45%" stop-color="#ffd24a"/>
+                <stop offset="100%" stop-color="#c98a00"/>
+              </radialGradient>
+            </defs>
+
+            <ellipse cx="310" cy="276" rx="212" ry="13" fill="#000" opacity=".45"/>
+
+            <g id="carGroup">
+              <!-- llamaradas de escape -->
+              <g id="flames" opacity="0">
+                <ellipse cx="74" cy="205" rx="44" ry="18" fill="url(#gFlame)"/>
+                <ellipse cx="44" cy="205" rx="28" ry="12" fill="url(#gFlame)" opacity=".85"/>
+                <ellipse cx="88" cy="205" rx="20" ry="8" fill="#fff3b0" opacity=".9"/>
+              </g>
+
+              <!-- alerón trasero -->
+              <path d="M 96 170 L 136 161 L 139 171 L 99 180 Z" fill="#c0141b"
+                stroke="#3d0508" stroke-width="2" stroke-linejoin="round"/>
+              <path d="M 116 172 L 124 171 L 126 181 L 118 182 Z" fill="#8c0f15"/>
+
+              <!-- carrocería -->
+              <path id="body" d="M 104 228
+                C 100 210 102 194 112 182
+                C 124 166 145 153 170 144
+                C 188 137 202 133 218 133
+                C 244 133 264 139 278 152
+                C 290 164 300 167 314 169
+                C 352 168 395 168 435 170
+                C 470 173 495 180 515 190
+                C 522 194 527 199 526 204
+                C 525 212 519 222 508 226
+                L 501 230
+                A 46 46 0 0 0 409 230
+                L 231 230
+                A 46 46 0 0 0 139 230
+                L 104 228 Z" fill="url(#gBody)" stroke="#3d0508" stroke-width="3"
+                stroke-linejoin="round"/>
+
+              <!-- capó claro / brillo -->
+              <path d="M 300 168 C 350 167 400 167 440 170 C 470 174 494 181 508 188
+                C 480 182 400 178 300 181 Z" fill="url(#gBody2)" opacity=".5"/>
+              <!-- sombra de bajos -->
+              <path d="M 108 210 C 170 202 400 208 516 214 L 518 230 L 104 228 Z" fill="#5c0a10" opacity=".35"/>
+
+              <!-- parabrisas -->
+              <path d="M 278 152 C 290 164 300 167 314 169 L 314 174 C 300 172 290 169 278 157 Z"
+                fill="url(#gGlass)" stroke="#16232f" stroke-width="1.5" stroke-linejoin="round"/>
+              <!-- cristal lateral -->
+              <path d="M 186 147 C 198 139 212 136 224 137 C 242 138 254 145 263 154
+                C 240 156 214 158 199 161 C 191 159 188 154 186 147 Z" fill="url(#gGlass)"
+                stroke="#16232f" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M 198 143 C 207 139 215 138 221 139 C 212 147 206 154 203 159
+                C 199 154 197 149 198 143 Z" fill="#ffffff" opacity=".3"/>
+              <!-- montante -->
+              <path d="M 224 137 C 230 137 235 138 240 139 L 235 157 C 228 157 221 157 216 157 Z"
+                fill="#e82127" opacity=".9"/>
+
+              <!-- puerta / corte -->
+              <path d="M 201 161 L 205 203" stroke="#7d0d13" stroke-width="2" fill="none" opacity=".6"/>
+              <path d="M 264 152 L 272 187" stroke="#7d0d13" stroke-width="2" fill="none" opacity=".45"/>
+              <!-- manija -->
+              <rect x="246" y="163" width="15" height="4.2" rx="2.1" fill="#5c0a10" opacity=".8"/>
+              <!-- retrovisor -->
+              <path d="M 284 158 L 295 156 L 297 163 L 286 165 Z" fill="#b8151c" stroke="#3d0508" stroke-width="1.5"/>
+              <!-- logo T -->
+              <g opacity=".5" transform="translate(322,180)">
+                <path d="M 0 -7 L 7 6 L 3.5 6 L 0 -1.5 L -3.5 6 L -7 6 Z" fill="#fff"/>
+              </g>
+              <!-- faro -->
+              <ellipse cx="503" cy="193" rx="9" ry="5" fill="#fff8d8" opacity=".95" transform="rotate(32 503 193)"/>
+              <ellipse cx="503" cy="193" rx="5" ry="2.6" fill="#fff" transform="rotate(32 503 193)"/>
+              <!-- piloto trasero -->
+              <rect x="104" y="188" width="7" height="15" rx="3.5" fill="#ff5252" opacity=".9"/>
+              <!-- escape -->
+              <rect x="95" y="203" width="13" height="9" rx="4.5" fill="#3a3f47"/>
+
+              <!-- ruedas -->
+              <g id="wRear">
+                <circle cx="185" cy="230" r="40" fill="url(#gTire)"/>
+                <circle cx="185" cy="230" r="40" fill="none" stroke="#0a0c10" stroke-width="3"/>
+                <circle cx="185" cy="230" r="27" fill="url(#gRim)"/>
+                <g stroke="#7d848e" stroke-width="6" stroke-linecap="round">
+                  <path d="M 185 205 L 185 255"/>
+                  <path d="M 163 217 L 207 243"/>
+                  <path d="M 163 243 L 207 217"/>
+                </g>
+                <circle cx="185" cy="230" r="7" fill="#3f454d"/>
+                <circle cx="185" cy="230" r="3" fill="#cdd3db"/>
+              </g>
+              <g id="wFront">
+                <circle cx="455" cy="230" r="40" fill="url(#gTire)"/>
+                <circle cx="455" cy="230" r="40" fill="none" stroke="#0a0c10" stroke-width="3"/>
+                <circle cx="455" cy="230" r="27" fill="url(#gRim)"/>
+                <g stroke="#7d848e" stroke-width="6" stroke-linecap="round">
+                  <path d="M 455 205 L 455 255"/>
+                  <path d="M 433 217 L 477 243"/>
+                  <path d="M 433 243 L 477 217"/>
+                </g>
+                <circle cx="455" cy="230" r="7" fill="#3f454d"/>
+                <circle cx="455" cy="230" r="3" fill="#cdd3db"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div id="golden" title="¡Galleta dorada!">🍪</div>
+      </div>
+
+      <div class="panel statusbar">
+        <span class="chip" style="min-width:0;padding:6px 12px"><i>CLICS</i><b id="hClicks">0</b></span>
+        <span class="chip" style="min-width:0;padding:6px 12px"><i>DORADAS</i><b id="hGolden">0</b></span>
+        <span class="chip" style="min-width:0;padding:6px 12px"><i>TIEMPO</i><b id="hTime">0:00</b></span>
+        <span class="frenzy" id="frenzyTag"></span>
+        <span class="hint" id="hint"></span>
+      </div>
+    </section>
+
+    <aside class="shop panel">
+      <div class="tabs">
+        <button class="tab on" data-tab="up">MEJORAS</button>
+        <button class="tab" data-tab="pr">PRESTIGIO</button>
+        <button class="tab" data-tab="ach">LOGROS</button>
+      </div>
+
+      <div class="mode">
+        <button class="on" data-mode="1">x1</button>
+        <button data-mode="10">x10</button>
+        <button data-mode="max">MÁX</button>
+      </div>
+
+      <div class="tabbody on" id="tab-up"></div>
+
+      <div class="tabbody" id="tab-pr">
+        <div class="prestige">
+          <h2>🚀 AL ESPACIO</h2>
+          <p>Envía el Roadster en el Falcon Heavy. Reinicias cookies y mejoras, pero cada
+             crédito espacial te da <b>+2%</b> de producción y de clic para siempre.</p>
+          <div class="big" id="prGain">+0</div>
+          <p id="prText">Necesitas 1.000.000 de cookies en total.</p>
+          <button class="btn" id="btnPrestige" disabled>LANZAR EL COCHE</button>
+        </div>
+      </div>
+
+      <div class="tabbody" id="tab-ach"></div>
+
+      <div class="foot">
+        <button id="btnSave">GUARDAR</button>
+        <button id="btnExport">EXPORTAR</button>
+        <button class="danger" id="btnReset">REINICIAR</button>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<div id="toasts"></div>
+
+<div class="screen" id="screenBack">
+  <div class="modal">
+    <h2>¡Bienvenido de vuelta!</h2>
+    <p id="backTxt">Tu Roadster ha seguido produciendo mientras no estabas.</p>
+    <button class="btn" id="btnBack">SEGUIR</button>
+  </div>
+</div>
+
+<div id="launch">
+  <div class="txt"><h2>🚀 LANZAMIENTO ORBITAL</h2><p id="launchTxt">EL ROADSTER ESTÁ EN ÓRBITA</p></div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ============================================================
+   ROADSTER CLICKER — cookie clicker con un Tesla Roadster
+   Sin dependencias. Un solo archivo. Canvas + WebAudio + DOM.
+   ============================================================ */
+
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const SAVE_KEY = 'roadster-clicker-v1';
+
+/* ---------------------------------------------------------
+   1. DATOS
+   --------------------------------------------------------- */
+const UPGRADES = [
+  // --- producción (cps) ---
+  {id:'cargador', ico:'🔌', tipo:'cps',   name:'Cargador doméstico',  desc:'+0,1 cookies/s',   cost:15,        rate:0.1,  lock:0},
+  {id:'wall',     ico:'🏠', tipo:'cps',   name:'Wall Connector',      desc:'+1 cookie/s',       cost:110,       rate:1,    lock:50},
+  {id:'super',    ico:'⚡', tipo:'cps',   name:'Supercharger',        desc:'+8 cookies/s',      cost:1200,      rate:8,    lock:400},
+  {id:'taller',   ico:'🔧', tipo:'cps',   name:'Taller de Nevada',    desc:'+47 cookies/s',     cost:13000,     rate:47,   lock:3000},
+  {id:'giga',     ico:'🏭', tipo:'cps',   name:'Gigafactory',         desc:'+260 cookies/s',    cost:140000,    rate:260,  lock:25000},
+  {id:'flota',    ico:'🚗', tipo:'cps',   name:'Flota Model 3',       desc:'+1,4K cookies/s',   cost:1400000,   rate:1400, lock:250000},
+  {id:'cyber',    ico:'🛻', tipo:'cps',   name:'Cybertrucks robotizados', desc:'+7,8K cookies/s', cost:20000000, rate:7800, lock:3000000},
+  {id:'taxis',    ico:'🤖', tipo:'cps',   name:'Taxis autónomos',     desc:'+44K cookies/s',    cost:330000000, rate:44000,lock:50000000},
+  {id:'ciudad',   ico:'🌆', tipo:'cps',   name:'Ciudad automatizada', desc:'+260K cookies/s',   cost:5100000000,rate:260000,lock:800000000},
+  {id:'planeta',  ico:'🌍', tipo:'cps',   name:'Planeta entero',      desc:'+1,6M cookies/s',   cost:75000000000,rate:1600000,lock:12000000000},
+  {id:'singular', ico:'🌀', tipo:'cps',   name:'Singularidad',        desc:'+12M cookies/s',    cost:1000000000000,rate:12000000,lock:150000000000},
+
+  // --- potencia de clic ---
+  {id:'boton',   ico:'🔘', tipo:'click', name:'Botón de arranque',  desc:'x2 al clic',  cost:500,        lock:100},
+  {id:'fibra',   ico:'🔑', tipo:'click', name:'Llave de fibra de carbono', desc:'x2 al clic', cost:50000, lock:8000},
+  {id:'pedal',   ico:'🦶', tipo:'click', name:'Pedal de inercia',   desc:'x2 al clic',  cost:5000000,    lock:700000},
+  {id:'rocket',  ico:'🚀', tipo:'click', name:'Modo cohete',        desc:'x2 al clic',  cost:500000000,  lock:60000000},
+
+  // --- galleta dorada ---
+  {id:'midas',   ico:'🤲', tipo:'golden', name:'Manos de Midas',     desc:'+15% de aparición de doradas', cost:100000,    lock:20000},
+  {id:'reloj',   ico:'⏳', tipo:'golden', name:'Reloj de fibra',     desc:'+10s de frenesí',  cost:2000000,   lock:400000},
+  {id:'auto',    ico:'🧲', tipo:'golden', name:'Imán dorado',        desc:'+50% de tiempo visible', cost:60000000, lock:10000000}
+];
+
+const ACHIEVEMENTS = [
+  {id:'first',  ico:'👆', name:'Primer toque',    desc:'Pulsa el Roadster por primera vez'},
+  {id:'c100',   ico:'💯', name:'Centella',        desc:'100 clics en el coche'},
+  {id:'c1000',  ico:'🔥', name:'Mano de piedra',  desc:'1000 clics en el coche'},
+  {id:'buy1',   ico:'🛒', name:'Primera compra',  desc:'Compra tu primera mejora'},
+  {id:'k1k',    ico:'🍪', name:'Presupuesto',     desc:'Acumula 1.000 cookies'},
+  {id:'k1m',    ico:'💰', name:'Millonario',      desc:'Acumula 1.000.000 de cookies'},
+  {id:'golden', ico:'🟡', name:'Dorado',          desc:'Pilla una galleta dorada'},
+  {id:'frenzy', ico:'⚡', name:'Frenesí',         desc:'Activa el modo frenesí'},
+  {id:'space',  ico:'🛰️', name:'Espacial',        desc:'Lanza el Roadster al espacio'},
+  {id:'all',    ico:'👑', name:'Imperio completo',desc:'Compra al menos una de cada mejora'},
+  {id:'b1b',    ico:'🌌', name:'Sin fronteras',   desc:'Acumula 1.000.000.000 de cookies'},
+  {id:'sing',   ico:'🌀', name:'Singularidad',    desc:'Compra la Singularidad'}
+];
+
+const FRENZY_MULT = 7;
+const FRENZY_TIME = 15;          // segundos
+const GOLDEN_LIFE = 12;          // segundos visible la galleta dorada
+const PRESTIGE_REQ = 1000000;
+const CREDIT_BONUS = 0.02;       // +2% por crédito
+
+/* ---------------------------------------------------------
+   2. ESTADO
+   --------------------------------------------------------- */
+let S = freshState();
+
+function freshState(){
+  return {
+    v: 1,
+    cookies: 0,
+    total: 0,          // cookies de la partida actual
+    everTotal: 0,      // cookies históricas (logros)
+    clicks: 0,
+    golden: 0,
+    frenzyUntil: 0,
+    credits: 0,        // créditos espaciales actuales
+    totalCredits: 0,
+    upgrades: {},      // id -> cantidad
+    ach: {},           // id -> true
+    playTime: 0,
+    lastSave: Date.now(),
+    mode: '1',
+    muted: false
+  };
+}
+
+const U = {};                    // id -> definición
+UPGRADES.forEach(u => U[u.id] = u);
+
+let goldenTimer = 40, goldenTTL = 0;
+let wheelAngle = 0, lastFrenzy = false;
+
+/* ---------------------------------------------------------
+   3. NÚMEROS
+   --------------------------------------------------------- */
+const UNITS = ['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc'];
+function fmt(n){
+  n = Math.floor(n);
+  if(!isFinite(n)) return '∞';
+  if(n < 1000) return String(n);
+  let i = 0;
+  while(n >= 1000 && i < UNITS.length-1){ n /= 1000; i++; }
+  const d = n < 10 ? 2 : n < 100 ? 1 : 0;
+  return (n.toFixed(d).replace(/\.0+$/,'')) + UNITS[i];
+}
+function fmtTime(s){
+  s = Math.floor(s);
+  const h = Math.floor(s/3600), m = Math.floor(s%3600/60), ss = s%60;
+  return h ? `${h}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`
+           : `${m}:${String(ss).padStart(2,'0')}`;
+}
+/* producción: con decimales cuando es pequeña (0,1 cookies/s) */
+function fmtCps(c){
+  if(c > 0 && c < 10) return c.toFixed(1).replace(/\.0$/,'').replace('.',',');
+  return fmt(c);
+}
+
+/* ---------------------------------------------------------
+   4. CÁLCULOS
+   --------------------------------------------------------- */
+function clickMult(){
+  let m = 1;
+  for(const u of UPGRADES) if(u.tipo === 'click' && S.upgrades[u.id]) m *= 2;
+  m *= (1 + CREDIT_BONUS * S.credits);
+  if(frenzyOn()) m *= FRENZY_MULT;
+  return m;
+}
+function baseCps(){
+  let c = 0;
+  for(const u of UPGRADES) if(u.tipo === 'cps') c += (u.rate || 0) * (S.upgrades[u.id] || 0);
+  return c;
+}
+function cps(){
+  let c = baseCps() * (1 + CREDIT_BONUS * S.credits);
+  if(frenzyOn()) c *= FRENZY_MULT;
+  return c;
+}
+function frenzyOn(){
+  return Date.now() < S.frenzyUntil;
+}
+function frenzyLeft(){
+  return Math.max(0, (S.frenzyUntil - Date.now())/1000);
+}
+function goldenBonus(){
+  return (S.upgrades.midas || 0) * 0.15;          // +15% de aparición por nivel
+}
+function goldenLife(){
+  return GOLDEN_LIFE * (1 + (S.upgrades.auto || 0) * 0.5);  // +50% de tiempo visible por nivel
+}
+function costOf(id, n){
+  const base = U[id].cost * Math.pow(1.15, S.upgrades[id] || 0);
+  if(n <= 1) return base;
+  return base * (Math.pow(1.15, n) - 1) / 0.15;
+}
+function maxAffordable(id){
+  const base = U[id].cost * Math.pow(1.15, S.upgrades[id] || 0);
+  if(S.cookies < base) return 0;
+  // n tal que base*(1.15^n -1)/0.15 <= cookies
+  const n = Math.floor(Math.log(1 + 0.15 * S.cookies / base) / Math.log(1.15));
+  return Math.max(1, n);
+}
+function prestigeGain(){
+  return Math.floor(Math.sqrt(Math.max(0, S.total) / PRESTIGE_REQ));
+}
+
+/* ---------------------------------------------------------
+   5. PERSISTENCIA
+   --------------------------------------------------------- */
+function save(){
+  S.lastSave = Date.now();
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return null;
+    const o = JSON.parse(raw);
+    if(!o || typeof o !== 'object') return null;
+    const st = freshState();
+    for(const k in st) if(o[k] !== undefined) st[k] = o[k];
+    st.upgrades = Object.assign({}, st.upgrades);
+    st.ach = Object.assign({}, st.ach);
+    return st;
+  }catch(e){ return null; }
+}
+
+/* ---------------------------------------------------------
+   6. AUDIO (WebAudio sintetizado)
+   --------------------------------------------------------- */
+let ac = null, master = null;
+function initAudio(){
+  if(ac) return;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if(!AC) return;
+  try{
+    ac = new AC();
+    master = ac.createGain();
+    master.gain.value = 0.32;
+    master.connect(ac.destination);
+  }catch(e){ ac = null; }
+}
+function tone(f0, f1, dur, type, vol, delay){
+  if(!ac || S.muted) return;
+  try{
+    const t = ac.currentTime + (delay || 0);
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(f0, t);
+    if(f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol || .25, t + .012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(master);
+    o.start(t); o.stop(t + dur + .05);
+  }catch(e){}
+}
+function noise(dur, vol, freq){
+  if(!ac || S.muted) return;
+  try{
+    const n = Math.floor(ac.sampleRate * dur);
+    const buf = ac.createBuffer(1, n, ac.sampleRate);
+    const d = buf.getChannelData(0);
+    for(let i = 0; i < n; i++) d[i] = (Math.random()*2-1) * (1 - i/n);
+    const src = ac.createBufferSource(); src.buffer = buf;
+    const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = freq || 1400;
+    const g = ac.createGain(); g.gain.value = vol || .2;
+    src.connect(f); f.connect(g); g.connect(master);
+    src.start();
+  }catch(e){}
+}
+const sfx = {
+  click(){ noise(.14,.20,2600); tone(120,42,.20,'sawtooth',.16); tone(880,660,.07,'square',.06); },
+  buy(){ tone(660,660,.08,'triangle',.22); tone(990,990,.12,'triangle',.20,.07); },
+  nope(){ tone(220,150,.14,'square',.12); },
+  gold(){ [784,988,1175,1568].forEach((f,i)=>tone(f,f,.16,'triangle',.18,i*.07)); },
+  frenzy(){ tone(300,1400,.5,'sawtooth',.14); noise(.4,.12,3200); },
+  prestige(){ tone(180,1400,1.1,'sawtooth',.14); noise(.9,.16,2400); },
+  ach(){ tone(880,880,.1,'sine',.2); tone(1320,1320,.16,'sine',.18,.09); }
+};
+
+/* ---------------------------------------------------------
+   7. TOASTS
+   --------------------------------------------------------- */
+function toast(msg, kind){
+  const el = document.createElement('div');
+  el.className = 'toast' + (kind === 'info' ? ' info' : '');
+  el.textContent = msg;
+  $('#toasts').appendChild(el);
+  setTimeout(()=>el.remove(), 3000);
+}
+function unlockAch(id){
+  if(S.ach[id]) return;
+  const a = ACHIEVEMENTS.find(x => x.id === id);
+  if(!a) return;
+  S.ach[id] = true;
+  sfx.ach();
+  refreshAch();
+  toast('🏆 ' + a.name + ' — ' + a.desc);
+}
+
+/* ---------------------------------------------------------
+   8. TIENDA
+   --------------------------------------------------------- */
+function buildShop(){
+  const box = $('#tab-up');
+  box.innerHTML = '';
+  for(const u of UPGRADES){
+    const row = document.createElement('div');
+    row.className = 'up';
+    row.dataset.id = u.id;
+    row.innerHTML =
+      `<div class="ico">${u.ico}</div>
+       <div class="txt">
+         <div class="nm">${u.name} <em data-count></em></div>
+         <div class="ds" data-desc>${u.desc}</div>
+       </div>
+       <button data-buy="${u.id}">—</button>`;
+    box.appendChild(row);
+  }
+  box.addEventListener('click', e => {
+    const b = e.target.closest('[data-buy]');
+    if(b) buy(b.dataset.buy);
+  });
+}
+function refreshShop(){
+  for(const u of UPGRADES){
+    const row = $(`.up[data-id="${u.id}"]`);
+    if(!row) continue;
+    const owned = S.upgrades[u.id] || 0;
+    const locked = S.everTotal < u.lock && owned === 0;
+    row.classList.toggle('locked', locked);
+    const cnt = row.querySelector('[data-count]');
+    cnt.textContent = owned ? '×' + owned : '';
+    const btn = row.querySelector('button');
+    if(locked){
+      btn.textContent = '🔒';
+      btn.disabled = true;
+      row.querySelector('[data-desc]').textContent = 'Bloqueado · ' + fmt(u.lock) + ' cookies';
+      continue;
+    }
+    let n = 1;
+    if(S.mode === '10') n = 10;
+    else if(S.mode === 'max') n = Math.max(1, maxAffordable(u.id));
+    const c = costOf(u.id, n);
+    btn.textContent = fmt(c);
+    btn.disabled = S.cookies < c;
+    row.classList.toggle('afford', S.cookies >= c);
+    const d = row.querySelector('[data-desc]');
+    d.textContent = u.desc + (u.tipo === 'cps' ? ` (total ${fmtCps(baseCps())})` : '');
+  }
+}
+function buy(id){
+  const u = U[id];
+  if(!u || S.everTotal < u.lock) return;
+  let n = 1;
+  if(S.mode === '10') n = 10;
+  else if(S.mode === 'max') n = Math.max(1, maxAffordable(id));
+  if(n < 1) return;
+  const c = costOf(id, n);
+  if(S.cookies < c){ sfx.nope(); return; }
+  S.cookies -= c;
+  S.upgrades[id] = (S.upgrades[id] || 0) + n;
+  sfx.buy();
+  unlockAch('buy1');
+  refreshShop();
+  save();
+}
+
+/* ---------------------------------------------------------
+   9. LOGROS
+   --------------------------------------------------------- */
+function buildAch(){
+  const box = $('#tab-ach');
+  box.innerHTML = '';
+  for(const a of ACHIEVEMENTS){
+    const el = document.createElement('div');
+    el.className = 'ach';
+    el.dataset.id = a.id;
+    el.innerHTML = `<div class="ico">${a.ico}</div><div><b>${a.name}</b><span>${a.desc}</span></div>`;
+    box.appendChild(el);
+  }
+}
+function refreshAch(){
+  for(const el of $$('.ach')) el.classList.toggle('done', !!S.ach[el.dataset.id]);
+}
+
+/* ---------------------------------------------------------
+   10. CLIC EN EL COCHE
+   --------------------------------------------------------- */
+const arena = $('#arena'), carHit = $('#carHit'), floaters = $('#floaters');
+function clickCar(ev){
+  initAudio();
+  const amount = clickMult();
+  S.cookies += amount;
+  S.total += amount;
+  S.everTotal += amount;
+  S.clicks++;
+  sfx.click();
+
+  // números flotantes
+  const rect = arena.getBoundingClientRect();
+  const x = (ev && ev.clientX ? ev.clientX : rect.left + rect.width/2) - rect.left;
+  const y = (ev && ev.clientY ? ev.clientY : rect.top + rect.height/2) - rect.top;
+  const f = document.createElement('div');
+  f.className = 'flt';
+  f.textContent = '+' + fmt(amount);
+  f.style.left = x + 'px';
+  f.style.top = (y - 10) + 'px';
+  floaters.appendChild(f);
+  setTimeout(()=>f.remove(), 1100);
+
+  // reacción del coche
+  carHit.classList.remove('boost','squash');
+  void carHit.offsetWidth;
+  carHit.classList.add('boost');
+  setTimeout(()=>carHit.classList.remove('boost'), 300);
+  arena.classList.remove('shake'); void arena.offsetWidth; arena.classList.add('shake');
+  wheelAngle += 26;
+
+  // logros
+  unlockAch('first');
+  if(S.clicks >= 100) unlockAch('c100');
+  if(S.clicks >= 1000) unlockAch('c1000');
+  if(S.everTotal >= 1000) unlockAch('k1k');
+  if(S.everTotal >= 1000000) unlockAch('k1m');
+  if(S.everTotal >= 1000000000) unlockAch('b1b');
+  if(UPGRADES.every(u => S.upgrades[u.id])) unlockAch('all');
+  if(S.upgrades.singular) unlockAch('sing');
+
+  refreshShop();
+}
+carHit.addEventListener('pointerdown', e => { e.preventDefault(); clickCar(e); });
+carHit.addEventListener('keydown', e => {
+  if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); clickCar(null); }
+});
+
+/* ---------------------------------------------------------
+   11. GALLETA DORADA
+   --------------------------------------------------------- */
+function isGoldenVisible(){
+  return $('#golden').classList.contains('show');
+}
+function hideGolden(){
+  $('#golden').classList.remove('show');
+  goldenTTL = 0;
+}
+function nextGoldenIn(){
+  return (55 + Math.random() * 45) / (1 + goldenBonus());
+}
+function spawnGolden(){
+  const g = $('#golden');
+  const rect = arena.getBoundingClientRect();
+  const size = 66;
+  const x = 20 + Math.random() * Math.max(20, rect.width - size - 40);
+  const y = 20 + Math.random() * Math.max(20, rect.height - size - 40);
+  g.style.left = x + 'px';
+  g.style.top = y + 'px';
+  g.classList.remove('show');
+  void g.offsetWidth;
+  g.classList.add('show');
+  goldenTTL = goldenLife();
+  goldenTimer = nextGoldenIn();
+  toast('🟡 ¡Ha aparecido una galleta dorada!', 'info');
+}
+$('#golden').addEventListener('pointerdown', e => {
+  e.stopPropagation();
+  hideGolden();
+  S.golden++;
+  sfx.gold();
+  unlockAch('golden');
+
+  const frenzyBonus = (S.upgrades.reloj || 0) * 10;
+  if(Math.random() < 0.5){
+    S.frenzyUntil = Date.now() + (FRENZY_TIME + frenzyBonus) * 1000;
+    sfx.frenzy();
+    unlockAch('frenzy');
+    toast('⚡ ¡FRENESÍ! x' + FRENZY_MULT + ' durante ' + (FRENZY_TIME + frenzyBonus) + 's');
+  }else{
+    const base = Math.max(50, cps() * 12);
+    const gain = Math.floor(base * (1 + Math.random() * 2));
+    S.cookies += gain; S.total += gain; S.everTotal += gain;
+    toast('🍪 Galleta dorada: +' + fmt(gain) + ' cookies');
+  }
+  goldenTimer = nextGoldenIn();
+  refreshShop();
+});
+
+/* ---------------------------------------------------------
+   12. PRESTIGIO
+   --------------------------------------------------------- */
+$('#btnPrestige').addEventListener('click', () => {
+  const gain = prestigeGain();
+  if(gain < 1) return;
+  const cont = confirm('¿Enviar el Roadster al espacio?\n\nGanas ' + gain + ' crédito(s) espacial(es).\nSe reinician cookies y mejoras.');
+  if(!cont) return;
+  S.credits += gain;
+  S.totalCredits += gain;
+  S.cookies = 0; S.total = 0; S.clicks = 0; S.golden = 0;
+  S.upgrades = {};
+  S.frenzyUntil = 0;
+  unlockAch('space');
+  sfx.prestige();
+  launchSequence(gain);
+  refreshShop(); save();
+});
+function launchSequence(gain){
+  const l = $('#launch');
+  $('#launchTxt').textContent = `+${gain} CRÉDITO${gain>1?'S':''} ESPACIAL${gain>1?'ES':''}`;
+  l.classList.add('on');
+  setTimeout(()=>{
+    l.classList.remove('on');
+    toast('🛰️ Has ganado ' + gain + (gain > 1 ? ' créditos espaciales' : ' crédito espacial') +
+          ' (+' + Math.round(gain*CREDIT_BONUS*100) + '% permanente)', 'info');
+    refreshShop();
+  }, 3500);
+}
+
+/* ---------------------------------------------------------
+   13. UI
+   --------------------------------------------------------- */
+function refreshUI(){
+  const c = cps();
+  $('#hCookies').textContent = fmt(S.cookies);
+  $('#hCps').textContent = fmtCps(c);
+  $('#hCred').textContent = S.credits;
+  $('#hClicks').textContent = fmt(S.clicks);
+  $('#hGolden').textContent = S.golden;
+  $('#hTime').textContent = fmtTime(S.playTime);
+
+  const f = frenzyOn();
+  $('#frenzyTag').textContent = f ? '⚡ FRENESÍ x' + FRENZY_MULT + ' — ' + Math.ceil(frenzyLeft()) + 's' : '';
+  if(f && !lastFrenzy) unlockAch('frenzy');
+  lastFrenzy = f;
+
+  const gain = prestigeGain();
+  $('#prGain').textContent = '+' + gain;
+  $('#prText').innerHTML = gain > 0
+    ? 'Créditos: <b>' + S.credits + '</b> · +' + Math.round(gain*CREDIT_BONUS*100) + '% ahora mismo'
+    : 'Necesitas 1.000.000 de cookies en total.';
+  $('#btnPrestige').disabled = gain < 1;
+
+  const hint = $('#hint');
+  if(S.cookies < 15) hint.innerHTML = 'Pulsa el <b>Roadster</b> para ganar cookies y compra tu primer <b>cargador</b>.';
+  else if(gain === 0 && S.total < PRESTIGE_REQ) hint.innerHTML = 'Goal: <b>' + fmt(PRESTIGE_REQ) + '</b> cookies para el lanzamiento orbital.';
+  else hint.innerHTML = 'Producción: <b>' + fmtCps(baseCps()) + '</b>/s · Clic: <b>' + fmt(clickMult()) + '</b>';
+
+  $('#btnSound').textContent = S.muted ? '🔇' : '🔊';
+}
+function refreshAll(){
+  refreshUI(); refreshShop(); refreshAch();
+}
+
+/* ---------------------------------------------------------
+   14. PESTAÑAS Y CONTROLES
+   --------------------------------------------------------- */
+$$('.tab').forEach(t => t.addEventListener('click', () => {
+  $$('.tab').forEach(x => x.classList.toggle('on', x === t));
+  $$('.tabbody').forEach(b => b.classList.toggle('on', b.id === 'tab-' + t.dataset.tab));
+}));
+$$('.mode button').forEach(b => b.addEventListener('click', () => {
+  $$('.mode button').forEach(x => x.classList.toggle('on', x === b));
+  S.mode = b.dataset.mode;
+  refreshShop();
+  save();
+}));
+$('#btnSound').addEventListener('click', () => {
+  S.muted = !S.muted;
+  if(!S.muted){ initAudio(); tone(700,700,.1,'sine',.2); }
+  refreshUI(); save();
+});
+$('#btnSave').addEventListener('click', () => { save(); toast('💾 Partida guardada', 'info'); });
+$('#btnExport').addEventListener('click', async () => {
+  const data = btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+  try{
+    await navigator.clipboard.writeText(data);
+    toast('📋 Partida copiada al portapapeles', 'info');
+  }catch(e){
+    prompt('Copia tu partida:', data);
+  }
+});
+$('#btnReset').addEventListener('click', () => {
+  if(!confirm('¿Borrar toda la partida? Se pierden cookies, mejoras y créditos.')) return;
+  S = freshState();
+  localStorage.removeItem(SAVE_KEY);
+  refreshAll();
+  toast('Partida reiniciada', 'info');
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'm' || e.key === 'M'){ $('#btnSound').click(); }
+});
+
+/* ---------------------------------------------------------
+   15. FONDO ESTELAR (canvas)
+   --------------------------------------------------------- */
+const sky = $('#sky');
+const sctx = sky.getContext('2d');
+let stars = [], W = 0, H = 0, DPR = 1;
+function resizeSky(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = sky.clientWidth; H = sky.clientHeight;
+  sky.width = W * DPR; sky.height = H * DPR;
+  sctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const count = Math.round(W * H / 5200);
+  stars = [];
+  for(let i = 0; i < count; i++){
+    stars.push({
+      x: Math.random() * W, y: Math.random() * H * .88,
+      r: Math.random() * 1.4 + .3, s: Math.random() * .9 + .2,
+      p: Math.random() * Math.PI * 2
+    });
+  }
+}
+function drawSky(t){
+  const g = sctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#05070d');
+  g.addColorStop(.55, '#0a1020');
+  g.addColorStop(1, '#160b12');
+  sctx.fillStyle = g; sctx.fillRect(0, 0, W, H);
+  for(const s of stars){
+    const a = .35 + .45 * Math.sin(t * .0016 * s.s + s.p);
+    sctx.globalAlpha = Math.max(.08, a);
+    sctx.fillStyle = '#cfe6ff';
+    sctx.beginPath(); sctx.arc(s.x, s.y, s.r, 0, 6.2832); sctx.fill();
+  }
+  sctx.globalAlpha = 1;
+  // resplandor rojo inferior (el taller)
+  const rg = sctx.createRadialGradient(W*.5, H, 10, W*.5, H, H*.55);
+  rg.addColorStop(0, 'rgba(232,33,39,.22)');
+  rg.addColorStop(1, 'rgba(232,33,39,0)');
+  sctx.fillStyle = rg; sctx.fillRect(0, H*.45, W, H*.55);
+}
+window.addEventListener('resize', resizeSky);
+
+/* ---------------------------------------------------------
+   16. BUCLE PRINCIPAL
+   --------------------------------------------------------- */
+/* La lógica va con setInterval (sigue viva con la pestaña en segundo plano,
+   que es justo lo que necesita un idle-clicker). El rAF solo dibuja el cielo. */
+let lastTick = performance.now();
+let uiAcc = 0, saveAcc = 0, softAcc = 0;
+
+function tick(){
+  const now = performance.now();
+  let dt = (now - lastTick) / 1000;
+  lastTick = now;
+  if(dt < 0) dt = 0;
+  if(dt > 5) dt = 5;               // pestaña suspendida: no regalar tiempo infinito
+
+  // producción
+  const c = cps();
+  if(c > 0){
+    S.cookies += c * dt;
+    S.total += c * dt;
+    S.everTotal += c * dt;
+    if(S.everTotal >= 1000) unlockAch('k1k');
+    if(S.everTotal >= 1000000) unlockAch('k1m');
+    if(S.everTotal >= 1000000000) unlockAch('b1b');
+  }
+  S.playTime += dt;
+
+  // ruedas giran según producción
+  wheelAngle += (c * .6 + (frenzyOn() ? 40 : 6)) * dt;
+  const wr = $('#wRear'), wf = $('#wFront');
+  if(wr) wr.setAttribute('transform', `rotate(${wheelAngle % 360} 185 230)`);
+  if(wf) wf.setAttribute('transform', `rotate(${wheelAngle % 360} 455 230)`);
+
+  // galleta dorada
+  if(isGoldenVisible()){
+    goldenTTL -= dt;
+    if(goldenTTL <= 0){ hideGolden(); goldenTimer = nextGoldenIn(); }
+  }else{
+    goldenTimer -= dt;
+    if(goldenTimer <= 0 && !frenzyOn()) spawnGolden();
+  }
+
+  // guardado automático
+  saveAcc += dt;
+  if(saveAcc > 6){ saveAcc = 0; save(); }
+
+  // UI a 10 Hz
+  uiAcc += dt;
+  if(uiAcc > .1){ uiAcc = 0; refreshUI(); }
+
+  // tienda cada ~0,6 s
+  softAcc += dt;
+  if(softAcc > .6){ softAcc = 0; refreshShop(); }
+}
+
+function drawLoop(now){
+  drawSky(now);
+  requestAnimationFrame(drawLoop);
+}
+
+/* ---------------------------------------------------------
+   17. INICIO
+   --------------------------------------------------------- */
+function init(){
+  const loaded = load();
+  let backMsg = '';
+  if(loaded){
+    S = loaded;
+    const elapsed = (Date.now() - S.lastSave) / 1000;
+    if(elapsed > 60 && baseCps() > 0){
+      const gain = Math.min(cps() * elapsed, cps() * 60 * 60 * 8);
+      S.cookies += gain; S.total += gain; S.everTotal += gain;
+      backMsg = 'El Roadster ha producido <b>' + fmt(gain) + '</b> cookies en ' +
+                fmtTime(elapsed) + ' (máx. 8 h).';
+    }
+  }
+  buildShop();
+  buildAch();
+  refreshAll();
+  resizeSky();
+
+  if(backMsg){
+    $('#backTxt').innerHTML = backMsg;
+    $('#screenBack').classList.add('on');
+    $('#btnBack').addEventListener('click', ()=>$('#screenBack').classList.remove('on'));
+  }
+
+  window.addEventListener('pointerdown', ()=>{ initAudio(); if(ac && ac.state === 'suspended') ac.resume(); }, {once:true});
+  window.addEventListener('beforeunload', save);
+  document.addEventListener('visibilitychange', ()=>{ if(document.hidden) save(); else { lastTick = performance.now(); } });
+
+  setInterval(tick, 100);
+  requestAnimationFrame(drawLoop);
+}
+init();
+
+})();
+</script>
+</body>
+</html>
