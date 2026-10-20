@@ -355,6 +355,7 @@ Nav.setMini = function (size, k) {
   function draw() {
     resize();
     const m = matrix(), k = BM.k;
+  try { Nav._lastBig = m; } catch (e) { }
     paintTerrain(ctx, m, BM.w, BM.h, BM.dpr, k, true);
     setScreen(ctx, BM.dpr);
     // nombres de barrio (texto derecho: no hay ejes invertidos)

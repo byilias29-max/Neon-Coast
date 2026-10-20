@@ -86,10 +86,12 @@
   try {
     if (typeof doors !== 'undefined') {
       doors.forEach((d, i) => {
-        if (/Salir/i.test(d.label || '')) return;
+        // tanto la entrada como la salida son puertas reales con hoja y aviso
+        const esSalida = /Salir/i.test(d.label || '');
         const h = hoja(d.x, d.z, 0, 1.6, 2.6);
-        h.kind = 'portal'; h.id = 'portal' + i; h.rec = d;
+        h.kind = 'portal'; h.id = (esSalida ? 'salida' : 'portal') + i; h.rec = d;
         h.to = { x: d.tx, z: d.tz };
+        h.salida = esSalida;
         PUERTAS.push(h);
       });
     }
@@ -134,7 +136,20 @@
       if (h) {
         if (h.kind === 'portal') {
           h.target = h.target ? 0 : 1;
-          fundido(() => { P.fx = h.to.x; P.fz = h.to.z; P.fvx = P.fvz = 0; });
+          fundido(() => {
+            try {
+              // si venia en coche, se aparca aqui: el vehiculo se queda en la calle
+              if (!P.foot) {
+                const cx = P.x, cz = P.z, cth = P.th;
+                try { car.position.set(cx, 0, cz); car.rotation.y = cth; } catch (e) { }
+                P.foot = true; P.fx = cx; P.fz = cz; P.fth = cth; P.vx = P.vz = 0; P.vy = 0;
+                if (P.h && P.h.g) P.h.g.visible = true;
+                try { if (typeof applyW === 'function') applyW(); } catch (e) { }
+              }
+            } catch (e) { }
+            P.fx = h.to.x; P.fz = h.to.z; P.fvx = P.fvz = 0;
+            if (h.salida) { try { toast('Salir · ' + (h.rec.label || '')); } catch (e) { } }
+          });
           try { beep(320, .12, 'sine', .04); } catch (e) { }
           return;
         }
@@ -165,7 +180,8 @@
         const abierta = h.target > .5;
         const lab = (h.rec && h.rec.label) ? h.rec.label : '';
         if (h.kind === 'portal') {
-          txt.textContent = abierta ? 'Entrar' : (lab ? 'Abrir · ' + lab : 'Abrir puerta');
+          if (h.salida) txt.textContent = 'Salir';
+          else txt.textContent = lab ? 'Entrar · ' + lab : 'Entrar';
         } else {
           txt.textContent = abierta ? 'Cerrar puerta' : 'Abrir puerta';
         }
