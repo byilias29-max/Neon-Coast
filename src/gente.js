@@ -236,6 +236,9 @@
     if (obj.g) { obj.g.position.copy(obj.g.position); obj.g.rotation.copy(obj.g.rotation); obj.g.scale.copy(obj.g.scale); }
     if (obj.g && obj.g.parent) obj.g.parent.remove(obj.g);
     nh.g.position.copy(obj.g.position); nh.g.rotation.copy(obj.g.rotation); nh.g.scale.copy(obj.g.scale);
+    // se conserva la visibilidad original (si no, los policias en espera se quedan visibles
+    // e inmoviles en el centro de la ciudad, en medio del punto de aparicion)
+    nh.g.visible = obj.g.visible !== false;
     obj.g = nh.g; obj.aL = nh.aL; obj.aR = nh.aR; obj.lL = nh.lL; obj.lR = nh.lR; obj.ph = nh.ph; obj.s0 = 1;
     obj._m = nh._m; obj._hi = nh._hi; obj._lo = lowGeo(sh, pa, ha, hat); obj._lod = true;
     swaps++;

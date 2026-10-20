@@ -30,6 +30,25 @@
 
   /* ==================================================================== DOM */
   const fadeEl = document.createElement('div'); fadeEl.id = 'ncIntroFade';
+  /* --- bandas negras cinematograficas (arriba y abajo) --- */
+  NC.css([
+    '#ncBarT,#ncBarB{position:fixed;left:0;right:0;height:0;background:#04030b;z-index:59;pointer-events:none;',
+    '  transition:height .55s cubic-bezier(.25,.9,.3,1),opacity .55s ease;opacity:0}',
+    '#ncBarT{top:0}#ncBarB{bottom:0}',
+    '#ncBarT.on,#ncBarB.on{height:9.2vh;opacity:1}',
+    '@media (max-aspect-ratio:3/4){#ncBarT.on,#ncBarB.on{height:6vh}}',
+    '@media (min-aspect-ratio:21/9){#ncBarT.on,#ncBarB.on{height:12vh}}'
+  ].join('\n'));
+  const barT = document.createElement('div'); barT.id = 'ncBarT';
+  const barB = document.createElement('div'); barB.id = 'ncBarB';
+  document.body.appendChild(barT); document.body.appendChild(barB);
+  function bar(on) {
+    try {
+      barT.classList.toggle('on', !!on);
+      barB.classList.toggle('on', !!on);
+    } catch (e) { }
+  }
+  window.NC && (NC.letterbox = bar);
   const actEl = document.createElement('div'); actEl.id = 'ncIntroAct';
   const txtEl = document.createElement('div'); txtEl.id = 'ncIntroTxt';
   const uiEl = document.createElement('div'); uiEl.id = 'ncIntroUI';
@@ -198,12 +217,14 @@
     S.push({ act: 2, dur: 12.4, cut: 1, wx0: .90, wx1: .88,
       p0: [470, 4.2, 221], p1: [453, 2.7, 210], l0: [441, 1.7, 202], l1: [441.5, 1.4, 202],
       say: [{ at: 1.2, d: 3.8, t: '— Llevo dos noches en este muelle. Nadie baja a esta hora.' },
-            { at: 4.8, d: 3.8, t: '— Por eso te pedí que vinieras. Y no por el barco.' },
-            { at: 8.4, d: 4.0, t: '— La caja se queda aquí. Mañana ya no será lo mismo.' }] });
+            { at: 4.8, d: 3.8, t: '— Por eso te llamé. Y no fue por el barco.' },
+            { at: 8.0, d: 3.8, t: '— Dejé una caja en manos de otro. Me pidió que no hiciera preguntas.' },
+            { at: 11.6, d: 4.0, t: '— Esta mañana ya estaban preguntando por ella.' },
+            { at: 15.4, d: 4.0, t: '— Yo no sé qué hay dentro. Sé quién no quería que saliera de aquí.' }] });
     /* --- ACTO 3 · PISTAS --- */
     S.push({ act: 3, dur: 2.9, wx0: .88, wx1: .86,
       p0: [-224, 3.4, -306], p1: [-231, 1.5, -312], l0: [-237, .8, -319], l1: [-237, .55, -319],
-      say: [{ at: .7, d: 3.2, t: 'Una caja de madera que nadie reclamó.' }] });
+      say: [{ at: .7, d: 3.2, t: 'La caja no pesa lo que debería.' }] });
     S.push({ act: 3, dur: 2.8, wx0: .86, wx1: .85,
       p0: [F.x, 8.8, F.z + 30], p1: [F.x, 7.4, F.z + 21], l0: [F.x, 7.2, F.z + 12.4], l1: [F.x, 7.1, F.z + 12.4],
       say: [{ at: .6, d: 3.2, t: 'El número de la nave, pintado en la puerta.' }] });
@@ -213,9 +234,13 @@
     S.push({ act: 3, dur: 2.7, wx0: .84, wx1: .83,
       p0: [-14, 1.2, -60], p1: [2, .9, -34], l0: [6, 2.4, -8], l1: [4, 1.8, 2],
       say: [{ at: .5, d: 3.2, t: 'La calle mojada devuelve lo que le das.' }] });
+    S.push({ act: 3, dur: 2.6, wx0: .83, wx1: .82,
+      p0: [436, 2.4, 214], p1: [444, 1.9, 210], l0: [449, 1.7, 205], l1: [449, 1.6, 205],
+      say: [{ at: .5, d: 3.2, t: 'Y hay dos cosas que no encajan: la llamada y el silencio.' }] });
     /* --- ACTO 4 · TUS --- */
     S.push({ act: 4, dur: 8.6, wx0: .83, wx1: INTRO_.wx0, dyn: 1, p0: [0, 0, 0], p1: [0, 0, 0], l0: [0, 0, 0], l1: [0, 0, 0],
-      say: [{ at: 5.0, d: 4.2, t: 'NEON COAST — Capítulo 1' }] });
+      say: [{ at: 3.4, d: 3.6, t: 'Y tú, sin saberlo todavía, ya estabas dentro.' },
+            { at: 5.4, d: 4.2, t: 'NEON COAST — Capítulo 1' }] });
     /* la hora del dia continua entre planos (salto solo en el acto 2) */
     for (let i = 1; i < S.length; i++) if (!S[i].cut) S[i].wx0 = S[i - 1].wx1;
     for (const s of S) { s.fi = .35; s.fo = .35; s._s = 0; }
@@ -370,6 +395,7 @@
 
   function restore() {
     try { setWx(INTRO_.wx0); paintSky(); } catch (e) { }
+    try { bar(false); } catch (e) { }
     try { timeScale = (INTRO_.ts0 == null ? 1 : INTRO_.ts0); } catch (e) { }
     try { document.body.classList.remove('ncIntroOn'); } catch (e) { }
     try { fadeEl.style.opacity = 0; fadeEl.style.display = 'none'; } catch (e) { }
@@ -420,6 +446,7 @@
     if (INTRO_.on || INTRO_.done) return;
     INTRO_.done = true;
     INTRO_.on = true;
+    try { bar(true); } catch (e) { }
     INTRO_.wx0 = WX.t;
     INTRO_.ts0 = timeScale;
     INTRO_.last = performance.now();

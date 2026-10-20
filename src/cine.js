@@ -1,4 +1,4 @@
-/* Neon Coast - SISTEMA DE CINEMATICAS (src/cine.js)
+﻿/* Neon Coast - SISTEMA DE CINEMATICAS (src/cine.js)
    Motor de cinematica en tiempo real: ni video ni imagenes, solo la propia escena 3D.
    - NC.cine.play(secuencia, alTerminar)
        secuencia = [{tipo:'shot'|'dialogo'|'accion', dur, cam:[x,y,z], look:[x,y,z],
@@ -267,6 +267,7 @@
 
   /* ============================================================== restauracion */
   function restore() {
+    try { if (window.NC && NC.letterbox) NC.letterbox(false); } catch (e) { }
     try {
       const S = CINE_.seq || [];
       for (const s of S) {
