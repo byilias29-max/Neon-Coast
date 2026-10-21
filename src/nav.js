@@ -53,7 +53,7 @@
   // ---------------------------------------------------------------- 4. categorías de lugares
   // shape: círculo, cuadrado, rombo, casa, cruz, estrella, triángulo, hexágono, anillo
   const CATS = [
-    { id: 'home',     n: 'Tu casa',                 col: '#ffd24a', shape: 'house',    g: '' },
+    { id: 'home',     n: 'Casa del jugador',        col: '#ffd24a', shape: 'house',    g: '' },
     { id: 'shop',     n: 'Tiendas y kioscos',       col: '#3dff9a', shape: 'circle',   g: '$' },
     { id: 'arms',     n: 'Armería',                 col: '#ff4a4a', shape: 'diamond',  g: '' },
     { id: 'garage',   n: 'Talleres y recambios',    col: '#cfd6e2', shape: 'hex',      g: 'T' },
@@ -101,10 +101,13 @@
     try { shops.forEach((s, i) => add('shop' + i, shopCat(s), s.name || 'Tienda', s.x, s.z, s.type || '')); } catch (e) { }
     try { carShops.forEach((s, i) => add('car' + i, 'carshop', s.name || 'Concesionario', s.x, s.z, 'Pintura · blindaje · motor · turbo')); } catch (e) { }
     try { hotels.forEach((h, i) => add('hotel' + i, 'hotel', h.name || 'Hotel', h.x, h.z, 'Dormir $30')); } catch (e) { }
-    try { bars.forEach((b, i) => add('bar' + i, 'bar', 'Bar', b.x, b.z, '')); } catch (e) { }
-    try { add('clinic', 'health', 'Clínica', CLINIC.x, CLINIC.z, 'Consulta médica $40'); } catch (e) { }
+    try { bars.forEach((b, i) => add('bar' + i, 'bar', 'Bar de noche', b.x, b.z, '')); } catch (e) { }
+    try { add('clinic', 'health', 'Clínica David', CLINIC.x, CLINIC.z, 'Consulta médica $40'); } catch (e) { }
     try { doors.forEach((d, i) => { if (d.label === 'Club Neón') add('door' + i, 'night', 'Club Neón', d.x, d.z, 'Entrada · DJ'); }); } catch (e) { }
-    try { add('park', 'landmark', 'Parque', park.x, park.z, ''); } catch (e) { }
+    try { add('park', 'landmark', 'Parque central', park.x, park.z, ''); } catch (e) { }
+    try { add('pier', 'landmark', 'Muelle del este', 445, 204, 'Pasarela sobre el mar'); } catch (e) { }
+    try { if (window.VILLAS) VILLAS.slice(0, 6).forEach((v, i) => add('villa' + i, 'landmark', 'Villa de Colina Mar', v[0], v[1], 'Chalet de la zona este')); } catch (e) { }
+    try { if (window.FACTORY) add('factory', 'landmark', 'Nave abandonada', FACTORY.x, FACTORY.z, 'Nave en ruinas de Chatarra Vieja'); } catch (e) { }
     try { if (FIELD) add('field', 'landmark', 'Campo de fútbol', FIELD.x, FIELD.z, 'Chuta el balón (E)'); } catch (e) { }
 
     // historia: personajes y lugares que el propio story.js considera visibles / descubribles
