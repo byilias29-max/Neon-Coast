@@ -575,7 +575,7 @@
       t: 'Yo cobro la deuda del puerto: las mamás no devuelven. Después de gastar la marea de la copa, quiero hablarle del seguro.',
       ops: [
         { n: 'Dejarle la mitad (–$600)', go: () => { const m2 = Math.min(600, money); money -= m2; S.fichaOut = true; saveStory(true); toast('Ficha cobra la mitad y se pierde en la bruma') } },
-        { n: 'La deuda es mentira: pelea', go: () => { S.fichaOut = true; saveStory(true); crime(.6); scare(24); P.hp = Math.max(8, P.hp - 18); try { hurt(6) } catch (e2) { } try { beep(140, .3, 'sawtooth', .05) } catch (e2) { } pop('FICHA, DERRIBADO'); toast('Pelea sucia · la bruma se lo lleva'); } }
+        { n: 'La deuda es mentira: pelea', go: () => { S.fichaOut = true; saveStory(true); crime(.6,'peaton'); scare(24); P.hp = Math.max(8, P.hp - 18); try { hurt(6) } catch (e2) { } try { beep(140, .3, 'sawtooth', .05) } catch (e2) { } pop('FICHA, DERRIBADO'); toast('Pelea sucia · la bruma se lo lleva'); } }
       ]
     };
     return dAmb('ficha');
@@ -651,7 +651,7 @@
       // contenedor blanco del puerto
       if (S.ch == 6 && !S.flags.hasPapeles && Math.hypot(px2 - WHITEBOX.x, pz2 - WHITEBOX.z) < 6.5) {
         S.flags.hasPapeles = true; saveStory(true); advance(7);
-        crime(.5);
+        crime(.5,'infraccion');
         chip(); chapterPin();
         toast('Papeles en mano · el puerto te ha visto');
         try { beep(300, .2, 'sawtooth', .04) } catch (e2) { }
