@@ -1,4 +1,4 @@
-﻿/* Neon Coast - spray: dibujo libre de graffiti sobre superficies reales del mundo.
+/* Neon Coast - spray: dibujo libre de graffiti sobre superficies reales del mundo.
    Tecnica: cinta de triangulos construida en el punto de impacto (offset sobre la normal),
    en una unica malla con color por vertice -> sin z-fighting, escala libre y persistible.
    Raycast desde la mira (o desde el raton si el puntero esta libre) contra las superficies

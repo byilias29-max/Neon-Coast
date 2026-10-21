@@ -1,4 +1,4 @@
-﻿/* Neon Coast - interfaz: sistema visual comun para HUD, menus y paneles.
+/* Neon Coast - interfaz: sistema visual comun para HUD, menus y paneles.
    Tipografia jerarquizada, vidrios consistentes, estados de control y cursor coherente. */
 (function () {
   'use strict';
