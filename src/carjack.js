@@ -54,14 +54,14 @@
     let seen = 0;
     for (const n of npcs) if (!n.dead && !n.gone && n.down <= 0 && Math.hypot(n.x - q.x, n.z - q.z) < 14) seen++;
     if (seen > 0) {
-      crime(.55); scare(16);
+      crime(.55,'infraccion'); scare(16);
       pop('¡TE VIERON ROBAR!');
       toast(seen + ' testigo' + (seen > 1 ? 's' : '') + ' del robo');
       try { beep(180, .25, 'sawtooth', .05); } catch (e) { }
     } else {
       pop('ROBO LIMPIO');
       toast('Coche robado sin testigos');
-      try { crime(.15); beep(320, .09); } catch (e) { }
+      try { crime(.15,'infraccion'); beep(320, .09); } catch (e) { }
     }
     // estela del color anterior: el color que deja hace huella en el registro de la casa
     try { P.lastStolen = prevPaint; } catch (e) { }

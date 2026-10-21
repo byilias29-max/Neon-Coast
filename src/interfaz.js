@@ -1,4 +1,4 @@
-﻿/* Neon Coast - interfaz: sistema visual comun para HUD, menus y paneles.
+/* Neon Coast - interfaz: sistema visual comun para HUD, menus y paneles.
    Tipografia jerarquizada, vidrios consistentes, estados de control y cursor coherente. */
 (function () {
   'use strict';
@@ -58,7 +58,8 @@
   #mmw canvas{width:100%!important;height:100%!important;transition:width .25s cubic-bezier(.2,.8,.2,1),height .25s cubic-bezier(.2,.8,.2,1)}
   #wp{
     position:absolute;right:18px;top:302px;max-width:190px;text-align:right;font-size:var(--fss);color:var(--muted);
-    background:var(--pane);border:1px solid var(--line);border-radius:var(--r2);padding:5px 10px;pointer-events:none}
+    background:var(--pane);border:1px solid var(--line);border-radius:var(--r2);padding:5px 10px;pointer-events:none;
+    display:none;font-weight:600}
 
   /* ---------- velocimetro ---------- */
   #spd{
@@ -142,10 +143,6 @@
     border:1px solid var(--line);border-radius:var(--r2);box-shadow:var(--sh);backdrop-filter:blur(8px)}
   #ncbar .slot{transition:background .14s,border-color .14s;border-radius:6px}
   #ncbar .slot:hover{background:rgba(60,170,255,.14)}
-
-  /* ---------- mapa grande ---------- */
-  #bigMap h3,#bigMap .leg,#bmZone,#bmCoord,#bmNav{font-family:'Segoe UI',system-ui,sans-serif}
-  #bmNav{background:var(--pane2);border:1px solid var(--line);border-radius:var(--r2);padding:6px 11px;color:var(--muted);font-size:11.5px}
   `);
 
   // ---------- cursor personalizado en los paneles nuevos ----------

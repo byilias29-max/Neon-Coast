@@ -1,4 +1,4 @@
-﻿/* Neon Coast - INTRODUCCION cinematografica (src/intro.js)
+/* Neon Coast - INTRODUCCION cinematografica (src/intro.js)
    Se reproduce SOLO al empezar una partida nueva, antes de que el jugador
    controle al personaje, y termina conectando con la primera mision.
    4 actos: EL MUNDO (12s) · EL MISTERIO (12s) · PISTAS (11s) · TUS (8.6s) = ~45s

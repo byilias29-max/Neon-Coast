@@ -1,6 +1,6 @@
 /* Neon Coast - minimapa e interfaz:
    - registra el mapa grande (#nbm) para que el cursor personalizado NO desaparezca
-   - la tecla M amplía/reduce el minimapa (el mapa completo se abre desde el menu)
+   - la tecla V amplía/reduce el minimapa (M abre el mapa grande, que vive en src/map.js)
    - icono del coche del jugador en el minimapa y en el mapa grande
    - el contenedor del minimapa crece con el canvas (sin recortarlo)                */
 (function () {
@@ -25,7 +25,7 @@
     }
   } catch (e) { }
 
-  // ---------- 2) M amplía el minimapa; el mapa completo solo desde el menu ----------
+  // ---------- 2) V amplía el minimapa; el mapa completo se abre con M ----------
   const MINI = { grande: false, sz: 150, k: .5, szB: 230, kB: .42 };
   function aplicarMini() {
     try {
@@ -49,12 +49,13 @@
     aplicarMini();
     try { toast(MINI.grande ? 'Minimapa ampliado' : 'Minimapa normal'); } catch (e) { }
   }
-  // en document con captura: se adelanta al listener del juego (que esta en window)
+  // con el mapa grande abierto, M lo cierra (se adelanta al listener del juego).
+  // si esta cerrado M deja pasar la tecla: el juego abre el mapa grande.
   document.addEventListener('keydown', e => {
     if (e.code !== 'KeyM' || e.repeat) return;
-    if (mapaAbierto()) { try { window.toggleMap(false); } catch (e2) { } e.preventDefault(); e.stopImmediatePropagation(); return; }
+    if (!mapaAbierto()) return;
+    try { window.toggleMap(false); } catch (e2) { }
     e.preventDefault(); e.stopImmediatePropagation();
-    toggleMini();
   }, true);
   // el minimapa ampliado no es interactivo ni mueve el mapa grande
   NC.mini = { toggle: toggleMini, get grande() { return MINI.grande; } };
@@ -124,5 +125,5 @@
     } catch (e) { }
   });
 
-  NC.log('minimapa: tecla M amplia, cursor registrado e icono del coche');
+  NC.log('minimapa: tecla V amplia, cursor registrado e icono del coche');
 })();

@@ -1,4 +1,4 @@
-﻿/* Neon Coast - vidas: historias personales, relaciones que evolucionan y rutinas
+/* Neon Coast - vidas: historias personales, relaciones que evolucionan y rutinas
    de los personajes importantes. Se apoya en el estado de la historia (S.rel / S.flags),
    en el sistema de dialogo (dlgShow) y en las rutinas de los actores (CAST[i].at()),
    sin crear un sistema paralelo ni duplicar lo que ya funciona. */
