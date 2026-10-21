@@ -2,11 +2,19 @@
    persecuciones con coche desde 3 estrellas, perdida de contacto y busqueda de la
    ultima posicion conocida. Reglas:
      0  libre
-     1  segunda victimapeaton reincidente / infracciones repetidas
-     2  escapaste de una persecucion: te siguen buscando en la zona
+     1  segunda victima peatón reincidente / infracciones repetidas
+     2  atraco a tienda / escapaste de una persecución: te siguen buscando en la zona
      3  has matado a un agente -> entran los coches patrulla
      4  cinco agentes abatidos en el mismo incidente
-     5  caos sostenido: mas bajas, persecucion larga, muchos incidentes graves  */
+     5  caos sostenido: mas bajas, persecucion larga, muchos incidentes graves
+
+   NIVEL DE BÚSQUEDA: este módulo es el ÚNICO dueño del nivel.
+   El motor (index.html) solo lo baja por su cuenta con su temporizador de decaimiento
+   (P.wt); aquí ese cambio se refleja en POL.nivel. Para forzar un nivel desde fuera:
+     NC.Pol.setLevel(n)   -> n estrellas (BRINGITON)
+     NC.Pol.clear()       -> sin búsqueda (LEAVEMEALONE)
+   crime() recibe un canal tipado: 'robo' | 'policia' | 'peaton' | 'disparo' |
+   'infraccion'. Cada tipo tiene su regla; ya no se deduce del número. */
 (function () {
   'use strict';
   if (!window.NC || !window.THREE) return;
@@ -46,13 +54,28 @@
     return false;
   }
 
-  // ---------- nivel de busqueda ----------
+  // ---------- nivel de busqueda: un único dueño ----------
+  // el motor puede BAJAR el nivel por su cuenta (decaimiento): eso se refleja aquí
+  function nivelDeMotor() {
+    try { return Math.max(0, Math.min(5, Math.round(P.wanted || 0))); } catch (e) { return 0; }
+  }
+  // escritura silenciosa (sin aviso): para estados internos
+  function escribirNivel(n) {
+    n = Math.max(0, Math.min(5, Math.round(n)));
+    POL.nivel = n;
+    try { P.wanted = n; } catch (e) { }
+    return n;
+  }
   function setNivel(n, motivo) {
     n = Math.max(0, Math.min(5, Math.round(n)));
-    if (n === POL.nivel) return;
     const antes = POL.nivel;
+    if (n === antes) return;
     POL.nivel = n;
-    try { P.wanted = n; P.wt = 9999; if (P.life) P.life.maxW = Math.max(P.life.maxW, n); } catch (e) { }
+    try {
+      P.wanted = n;
+      P.wt = 25;                                  // el motor baja una estrella cada 15 s desde aquí
+      if (P.life) P.life.maxW = Math.max(P.life.maxW, n);
+    } catch (e) { }
     try { localStorage.setItem(KEY, JSON.stringify({ n, t: Date.now() })); } catch (e) { }
     if (n > antes) {
       toast(n + (n === 1 ? ' estrella' : ' estrellas') + (motivo ? ' · ' + motivo : ''));
@@ -63,68 +86,89 @@
     }
     hud();
   }
+  // quitar la búsqueda entera (LEAVEMEALONE, ficha, hospital...)
+  function limpiarBusqueda() {
+    POL.estado = 'libre';
+    POL.pers = null;
+    POL.busquedaT = 0;
+    POL.victimas = 0;
+    POL.infracciones = 0;
+    CARS.splice(0).forEach(u => { try { scene.remove(u.g); } catch (e) { } });
+    escribirNivel(0);
+    try { P.wt = 0; } catch (e) { }
+    try { localStorage.setItem(KEY, JSON.stringify({ n: 0, t: Date.now() })); } catch (e) { }
+    hud();
+  }
 
   // ---------- victimas: se cuentan por victima (el mismo NPC nunca suma dos veces) ----------
+  // solo lleva la cuenta: el nivel lo decide crime() según el tipo de delito
   function registrarVictima(victima, esPolicia) {
     try {
       if (!victima) return;
+      try { if (P.noWanted) return; } catch (e) { }
       if (vistos.has(victima)) return;      // ya contabilizada
       vistos.add(victima);
       const px = P.foot ? P.fx : P.x, pz = P.foot ? P.fz : P.z;
       if (esPolicia) {
-        const inc = incidente('policia', px, pz, victima, true);
+        incidente('policia', px, pz, victima, true);
         POL.copsMuertos++;
-        if (POL.pers) POL.pers.kills++;
-        else POL.pers = { id: POL.idc, t0: performance.now(), ultimo: { x: px, z: pz }, tUltimo: performance.now(), perdidoT: 0, kills: 1, nivel: 3 };
-        setNivel(3, 'agente abatido');
-        POL.estado = 'persecucion';
-        POL.cooldown = 0;
-        return;
+        return;                              // el nivel lo pone crime('policia')
       }
       incidente('peaton', px, pz, victima, false);
       POL.victimas++;
-      if (POL.victimas >= 2) {
-        setNivel(1, 'reincidencia');
-        POL.estado = 'persecucion';
-        if (!POL.pers) POL.pers = { id: POL.idc, t0: performance.now(), ultimo: { x: px, z: pz }, tUltimo: performance.now(), perdidoT: 0, kills: 0, nivel: 1 };
-      }
     } catch (e) { }
   }
   try {
     const _knock = window.knock;
     window.knock = function (e, cop) {
-      const r = _knock && _knock.apply(this, arguments);
+      // primero la victima (para que crime() vea las cuentas ya actualizadas)
       try { registrarVictima(e, cop === true || cop === 1); } catch (err) { }
-      return r;
+      return _knock && _knock.apply(this, arguments);
     };
   } catch (e) { }
 
-  // ----------替换 crime(): reglas nuevas ----------
+  // ---------- crime(): canal tipado ----------
+  // a: magnitud antigua (se conserva por compatibilidad) · kind: tipo de delito
   const _crime = window.crime;
-  window.crime = function (a) {
-    if (typeof P !== 'undefined' && P.noWanted) return;
-    const px = P.foot ? P.fx : P.x, pz = P.foot ? P.fz : P.z;
-    if (a >= 1.4) {
-      // agente abatido -> 3 estrellas y persecucion
-      const inc = incidente('policia', px, pz, null, true);
-      POL.copsMuertos++;
-      if (POL.pers) POL.pers.kills++;
-      else POL.pers = { id: POL.idc, t0: performance.now(), ultimo: { x: px, z: pz }, tUltimo: performance.now(), perdidoT: 0, kills: 1, nivel: 3 };
-      setNivel(3, 'agente abatido');
-      POL.estado = 'persecucion';
-      POL.cooldown = 0;
-      return;
-    }
-    if (a >= 0.6) {
-      // victima sin identidad (no pasa por knock): cuenta como reincidencia
-      POL.victimas++;
-      if (POL.victimas >= 2) { setNivel(1, 'reincidencia'); POL.estado = 'persecucion'; if (!POL.pers) POL.pers = { id: POL.idc, t0: performance.now(), ultimo: { x: px, z: pz }, tUltimo: performance.now(), perdidoT: 0, kills: 0, nivel: 1 }; }
-      return;
-    }
-    // infraccion leve: cuenta, pero solo sube si se repite y hay testigo
-    POL.infracciones++;
-    if (POL.infracciones >= 3 && hayTestigo(px, pz)) { setNivel(1, 'infracciones repetidas'); }
-    try { _crime && _crime(0); } catch (e) { }
+  window.crime = function (a, kind) {
+    try {
+      if (typeof P !== 'undefined' && P && P.noWanted) return;
+      const px = P.foot ? P.fx : P.x, pz = P.foot ? P.fz : P.z;
+      const k = kind || (a >= 1.4 ? 'policia' : a >= 0.6 ? 'peaton' : 'infraccion');
+      if (k === 'policia') {
+        // agente abatido -> 3 estrellas y persecucion (no cuenta como atraco ni como victima)
+        incidente('policia', px, pz, null, true);
+        if (POL.pers) POL.pers.kills++;
+        else POL.pers = { id: POL.idc, t0: performance.now(), ultimo: { x: px, z: pz }, tUltimo: performance.now(), perdidoT: 0, kills: 1, nivel: 3 };
+        setNivel(Math.max(POL.nivel, 3), 'agente abatido');
+        POL.estado = 'persecucion';
+        POL.cooldown = 0;
+        return;
+      }
+      if (k === 'robo') {
+        // atraco a tienda -> 2 estrellas y persecucion (nunca "agente abatido")
+        incidente('robo', px, pz, null, true);
+        setNivel(Math.max(POL.nivel, 2), 'atraco a tienda');
+        POL.estado = 'persecucion';
+        if (!POL.pers) POL.pers = { id: POL.idc, t0: performance.now(), ultimo: { x: px, z: pz }, tUltimo: performance.now(), perdidoT: 0, kills: 0, nivel: 2 };
+        POL.cooldown = 0;
+        return;
+      }
+      if (k === 'peaton') {
+        // victima sin identidad (no pasa por knock): cuenta como reincidencia
+        POL.victimas++;
+        if (POL.victimas >= 2) {
+          setNivel(Math.max(POL.nivel, 1), 'reincidencia');
+          POL.estado = 'persecucion';
+          if (!POL.pers) POL.pers = { id: POL.idc, t0: performance.now(), ultimo: { x: px, z: pz }, tUltimo: performance.now(), perdidoT: 0, kills: 0, nivel: 1 };
+        }
+        return;
+      }
+      // disparo / infraccion: cuenta, pero solo sube si se repite y hay testigo
+      POL.infracciones++;
+      if (POL.infracciones >= 3 && hayTestigo(px, pz)) setNivel(Math.max(POL.nivel, 1), 'infracciones repetidas');
+      try { _crime && _crime(0); } catch (e) { }
+    } catch (e) { }
   };
 
   // ---------- HUD de estrellas ----------
@@ -134,6 +178,7 @@
   #st i.on{color:#ffd24a;text-shadow:0 0 8px rgba(255,210,74,.6)}
   #st i.pop{animation:stPop .5s cubic-bezier(.2,1.6,.4,1)}
   #st .srch{font-size:10.5px;letter-spacing:.14em;color:#ff8a9a;margin-left:6px;font-style:normal;animation:stBlink 1.4s infinite}
+  #st .sec{font-size:10.5px;letter-spacing:.06em;color:#ffd24a;margin-left:5px;font-style:normal;opacity:.85}
   @keyframes stPop{0%{transform:scale(.2)}60%{transform:scale(1.5)}100%{transform:scale(1)}}
   @keyframes stBlink{0%,100%{opacity:.45}50%{opacity:1}}
   `);
@@ -145,6 +190,7 @@
     let h = '';
     for (let i = 0; i < 5; i++) h += '<i class="' + (i < n ? 'on' : '') + (n > hudN && i < n ? ' pop' : '') + '">★</i>';
     if (buscando) h += '<span class="srch">BUSCANDO</span>';
+    else if (n > 0) { let s = 0; try { s = Math.max(0, Math.ceil(P.wt || 0)); } catch (e) { } h += '<span class="sec">' + s + 's</span>'; }
     el.innerHTML = h;
     if (n !== hudN) { hudN = n; }
   }
@@ -263,13 +309,8 @@
           POL.busquedaT = 0;
           if (!POL.pers) POL.pers = { id: POL.idc, t0: performance.now(), ultimo: { x: px, z: pz }, tUltimo: performance.now(), perdidoT: 0, kills: 0, nivel: POL.nivel };
           toast('Te han visto: vuelve la persecucion');
-        } else if (POL.busquedaT > 45) {
-          // buscas lo suficiente: baja un nivel y se sigue bajando solo
-          POL.busquedaT = 0;
-          setNivel(POL.nivel - 1, 'busqueda sin resultado');
-          if (POL.nivel === 0) { POL.estado = 'libre'; POL.pers = null; }
         }
-        return;
+        return;                              // el nivel lo baja el motor (decaimiento)
       }
       // persecucion activa
       if (!POL.pers) POL.pers = { id: POL.idc, t0: performance.now(), ultimo: { x: px, z: pz }, tUltimo: performance.now(), perdidoT: 0, kills: 0, nivel: POL.nivel };
@@ -280,14 +321,13 @@
           // te han perdido de vista: buscan tu ultima posicion conocida
           POL.estado = 'busqueda';
           POL.busquedaT = 0;
-          POL.nivel = 2;                      // nivel pendiente de busqueda
-          try { P.wanted = 2; P.wt = 9999; } catch (e) { }
+          escribirNivel(Math.max(POL.nivel, 2));     // nivel pendiente de busqueda
           toast('Has escapado, pero te buscan (2 estrellas)');
           try { pop('BUSCANDO'); } catch (e) { }
         }
       }
       // 4 estrellas: cinco agentes abatidos en el mismo incidente
-      if (POL.pers && POL.pers.kills >= 5) setNivel(4, 'cinco agentes abatidos');
+      if (POL.pers && POL.pers.kills >= 5) setNivel(Math.max(POL.nivel, 4), 'cinco agentes abatidos');
       // 5 estrellas: caos sostenido
       if (POL.nivel >= 4) {
         const dur = POL.pers ? (performance.now() - POL.pers.t0) / 1000 : 0;
@@ -305,8 +345,25 @@
       if (typeof P === 'undefined' || !P) return;
       const px = P.foot ? P.fx : P.x, pz = P.foot ? P.fz : P.z;
       const th = P.foot ? (typeof cam !== 'undefined' ? cam.yaw : 0) : P.th;
-      // la estrella la gestiona este modulo: el motor no debe bajarla por su cuenta
-      try { P.wt = 9999; P.wanted = POL.nivel; } catch (e) { }
+
+      // ---------- nivel de busqueda: aquí manda la policía ----------
+      if (P.noWanted) {
+        // AEZAKMI (poli ciego): no hay búsqueda y no se acumula nada
+        if (POL.nivel !== 0) { escribirNivel(0); POL.estado = 'libre'; POL.pers = null; POL.victimas = 0; POL.infracciones = 0; }
+        try { P.wanted = 0; P.wt = 0; } catch (e) { }
+      } else {
+        const lv = nivelDeMotor();
+        if (lv !== POL.nivel) {
+          // el motor ha bajado el nivel por su cuenta (decaimiento): se refleja aquí
+          POL.nivel = lv;
+          try { P.wanted = lv; } catch (e) { }
+          if (lv === 0) {
+            POL.estado = 'libre'; POL.pers = null; POL.victimas = 0; POL.infracciones = 0;
+            try { toast('Te han perdido el rastro'); } catch (e) { }
+          }
+          hud();
+        }
+      }
       actualizarEstado(dt, px, pz);
       actualizarPatrullas(dt, px, pz, th, !P.foot);
       // durante una busqueda los agentes a pie rondan la ultima posicion conocida
@@ -320,7 +377,7 @@
       }
     } catch (e) { }
   });
-  // el HUD de estrellas se repinta cada frame (el motor lo sobrescribe con texto plano)
+  // el HUD de estrellas se repinta cada frame (es el único que escribe en #st)
   NC.hooks.post.push(() => {
     try { hud(); } catch (e) { }
     // durante la busqueda los agentes a pie se quedan roncando la ultima posicion
@@ -342,10 +399,20 @@
   // ---------- limpiar al ser detenido ----------
   try {
     const _busted = window.openBusted;
-    window.openBusted = function (c) { try { setNivel(0, ''); POL.estado = 'libre'; POL.pers = null; CARS.splice(0).forEach(u => scene.remove(u.g)); } catch (e) { } return _busted && _busted.apply(this, arguments); };
+    window.openBusted = function (c) { try { limpiarBusqueda(); } catch (e) { } return _busted && _busted.apply(this, arguments); };
   } catch (e) { }
 
+  // ---------- API pública ----------
+  NC.Pol = {
+    get nivel() { return POL.nivel; },
+    get estado() { return POL.estado; },
+    get victimas() { return POL.victimas; },
+    get copsMuertos() { return POL.copsMuertos; },
+    setLevel(n, motivo) { try { setNivel(n, motivo || 'nivel manual'); } catch (e) { } },
+    clear() { try { limpiarBusqueda(); } catch (e) { } },
+    POL
+  };
   NC.policia = POL;
   POL.cars = CARS;
-  NC.log('policia: busqueda de 0 a 5 estrellas, incidentes unicos y persecuciones con coche desde 3 estrellas');
+  NC.log('policia: busqueda de 0 a 5 estrellas (unico dueño del nivel), incidentes unicos y persecuciones con coche desde 3 estrellas');
 })();
