@@ -19,7 +19,7 @@
      · Si algo falla el juego sigue arrancando: todo va en try/catch.
 
    CARGA (desde index.html, despues del resto de src/*.js):
-       <script src="src/interior2.js?v=9x"></script>
+       <script src="src/interior2.js?v=9c"></script>
    --------------------------------------------------------------------------- */
 (function () {
   'use strict';
@@ -607,9 +607,10 @@
         const X = h.x, Zf = h.z, FY = .48;
         const xi0 = X - 12.65, xi1 = X + 12.65, zi0 = Zf - 17.65, zi1 = Zf - 2.35;
 
-        /* suelo de la zona de habitaciones (el vestibulo viejo ya tiene el suyo) */
-        box('sueloHotel', 25.2, .12, 4.2, X, FY - .06, Zf - 15.5);
-        box('sueloMoqueta', 25.2, .02, 4.2, X, FY + .01, Zf - 15.5);
+        /* suelo de la zona de habitaciones (el vestibulo viejo ya tiene el suyo:
+           va 1 cm mas abajo para que los dos suelos no se pisen (z-fighting)) */
+        box('sueloHotel', 25.2, .12, 4.2, X, FY - .07, Zf - 15.5);
+        box('sueloMoqueta', 25.2, .02, 4.2, X, FY, Zf - 15.5);
 
         /* --- pasillo de habitaciones (tira izquierda, 2.8 m) --- */
         const cx0 = X - 12.4, cx1 = X - 9.6;

@@ -23,21 +23,28 @@
 
   // ---------- geometria humana mejorada ----------
   const S = T.SphereGeometry, C = T.CylinderGeometry, B = T.BoxGeometry;
-  const es = (r, c, sx, sy, sz, x, y, z, w) => CGC(new S(r, w || 12, w ? Math.max(6, w - 2) : 8).scale(sx, sy, sz).translate(x, y, z), c);
-  const cy = (rt, rb, h, x, y, z, c, seg) => CGC(new C(rt, rb, h, seg || 12).translate(x, y, z), c);
+  // LOD: 0 = malla completa, 1 = version simplificada (mismos colores y silueta, menos poligonos)
+  let LOD = 0;
+  const SEG = n => LOD ? Math.max(4, Math.round(n * .55)) : n;
+  const es = (r, c, sx, sy, sz, x, y, z, w) => {
+    const ws = w ? SEG(w) : SEG(12), hs = w ? Math.max(4, SEG(w) - 2) : SEG(8);
+    return CGC(new S(r, ws, hs).scale(sx, sy, sz).translate(x, y, z), c);
+  };
+  const cy = (rt, rb, h, x, y, z, c, seg) => CGC(new C(rt, rb, h, SEG(seg || 12)).translate(x, y, z), c);
   const bu = (w, h, d, x, y, z, c, rz) => CGC(new B(w, h, d).translate(x, y, z).rotateZ(rz || 0), c);
   const SKIN = [0xe8b48c, 0xd9a074, 0xc08a5e, 0xa9714a, 0x8a5a3a, 0xf0c9a4];
 
-  function hgeo3(sh, pa, ha, hat, build) {
+  function hgeo3(sh, pa, ha, hat, build, lod) {
     const B_ = build || { h: 1, w: 1, g: 1, age: 0, hair: 0 };
-    const key = sh + '_' + pa + '_' + ha + '_' + hat + '_' + B_.h + '_' + B_.w + '_' + B_.g + '_' + B_.age + '_' + B_.hair;
+    const key = sh + '_' + pa + '_' + ha + '_' + hat + '_' + B_.h + '_' + B_.w + '_' + B_.g + '_' + B_.age + '_' + B_.hair + (lod ? '_lo' : '');
     if (H3[key]) return H3[key];
+    const prevLod = LOD; LOD = lod ? 1 : 0;
     const skin = SKIN[(sh + pa) % SKIN.length];
     const wsc = B_.w, gsc = B_.g, hsc = B_.h;
 
     // ---- torso torneado con pecho, cintura y cadera ----
     const prof = [[.150, .95], [.158, 1.05], [.168, 1.16], [.186, 1.30], [.180, 1.40], [.126, 1.478], [.060, 1.512]];
-    const torso = CGC(new T.LatheGeometry(prof.map(p => new T.Vector2(p[0] * wsc, p[1])), 20), sh);
+    const torso = CGC(new T.LatheGeometry(prof.map(p => new T.Vector2(p[0] * wsc, p[1])), SEG(20)), sh);
     {   // ensanchar el pecho en V y marcar la cintura
       const p = torso.attributes.position;
       for (let i = 0; i < p.count; i++) {
@@ -51,7 +58,7 @@
     }
     // ---- cabeza con rasgos ----
     const hs = 1 + B_.age * .06;
-    const head = merge([
+    const headParts = [
       es(.118 * hs, skin, 1, 1.14, 1.04, 0, .015, -.006, 14),          // craneo
       es(.098 * hs, skin, 1, .72, .94, 0, -.066, .010, 12),             // mandibula
       es(.052 * hs, skin, 1, 1, 1, 0, -.114, .048, 10),                 // nariz
@@ -69,24 +76,29 @@
       es(.034, skin, 1, 1, .62, -.121, -.002, -.004, 8),               // oreja
       es(.034, skin, 1, 1, .62, .121, -.002, -.004, 8),
       es(.030, dk(skin), 1, .8, .8, 0, -.132, .086, 6)                  // menton
-    ]).scale(.88, .88, .88).translate(0, 1.715, 0);
+    ];
+    if (LOD) headParts.splice(6, 4);           // en LOD se van las pupilas y los brillos
+    const head = merge(headParts).scale(.88, .88, .88).translate(0, 1.715, 0);
     // ---- pelo con volumen (4 estilos) ----
     let hairG = [];
     const hs2 = 1 + B_.age * .05;
     if (B_.hair === 0) {          // melena corta
-      hairG.push(CGC(new S(.132 * hs2, 14, 10, 0, Math.PI * 2, 0, Math.PI * .52).scale(1.06, 1.12, 1.08).translate(0, .05, -.012), ha));
-      hairG.push(CGC(new S(.126 * hs2, 12, 8, 0, Math.PI * 2, 0, Math.PI * .30).scale(1.04, 1, 1.06).translate(0, .045, .022), dk(ha)));
+      hairG.push(CGC(new S(.132 * hs2, SEG(14), SEG(10), 0, Math.PI * 2, 0, Math.PI * .52).scale(1.06, 1.12, 1.08).translate(0, .05, -.012), ha));
+      if (!LOD) hairG.push(CGC(new S(.126 * hs2, SEG(12), SEG(8), 0, Math.PI * 2, 0, Math.PI * .30).scale(1.04, 1, 1.06).translate(0, .045, .022), dk(ha)));
     } else if (B_.hair === 1) {   // coleta
-      hairG.push(CGC(new S(.130 * hs2, 14, 10, 0, Math.PI * 2, 0, Math.PI * .5).scale(1.05, 1.1, 1.06).translate(0, .05, -.012), ha));
-      hairG.push(CGC(new S(.045, 10, 8).scale(1, 1.9, 1).translate(0, -.02, -.115), ha));         // coleta
-      hairG.push(CGC(new S(.026, 8, 6).scale(1, .6, 1).translate(0, -.11, -.115), dk(ha)));
+      hairG.push(CGC(new S(.130 * hs2, SEG(14), SEG(10), 0, Math.PI * 2, 0, Math.PI * .5).scale(1.05, 1.1, 1.06).translate(0, .05, -.012), ha));
+      if (!LOD) {
+        hairG.push(CGC(new S(.045, SEG(10), SEG(8)).scale(1, 1.9, 1).translate(0, -.02, -.115), ha));         // coleta
+        hairG.push(CGC(new S(.026, SEG(8), SEG(6)).scale(1, .6, 1).translate(0, -.11, -.115), dk(ha)));
+      }
     } else if (B_.hair === 2) {   // moño
-      hairG.push(CGC(new S(.128 * hs2, 14, 10, 0, Math.PI * 2, 0, Math.PI * .48).scale(1.05, 1.08, 1.05).translate(0, .05, -.012), ha));
-      hairG.push(CGC(new S(.062, 10, 8).scale(1, .9, 1).translate(0, .105, -.075), ha));
-    } else {                      // rizado /的大事
-      for (let i = 0; i < 7; i++) {
-        const a = i / 7 * Math.PI * 2;
-        hairG.push(CGC(new S(.062 + Math.random() * .02, 8, 6).scale(1, .85, 1)
+      hairG.push(CGC(new S(.128 * hs2, SEG(14), SEG(10), 0, Math.PI * 2, 0, Math.PI * .48).scale(1.05, 1.08, 1.05).translate(0, .05, -.012), ha));
+      if (!LOD) hairG.push(CGC(new S(.062, SEG(10), SEG(8)).scale(1, .9, 1).translate(0, .105, -.075), ha));
+    } else {                      // rizado
+      const nr = LOD ? 4 : 7;
+      for (let i = 0; i < nr; i++) {
+        const a = i / nr * Math.PI * 2;
+        hairG.push(CGC(new S(.062 + Math.random() * .02, SEG(8), SEG(6)).scale(1, .85, 1)
           .translate(Math.cos(a) * .085 * hs2, .075 + Math.random() * .03, Math.sin(a) * .085 * hs2 - .01), ha));
       }
     }
@@ -110,16 +122,19 @@
     ]);
 
     // ---- brazo con volumen de manga, codo, mano y dedos ----
-    const arm = merge([
+    const armParts = [
       es(.084 * wsc, dk(sh), 1.30, .80, 1.10, 0, -.018, 0, 10),        // deltoides
       cy(.068, .060, .24, 0, -.138, 0, sh, 12),                        // manga
       es(.055, dk(sh), 1.12, .9, 1.12, 0, -.245, 0, 8),                // codo
       cy(.052, .044, .185, 0, -.378, 0, skin, 10),                      // antebrazo
       es(.045, skin, 1, 1, 1, 0, -.468, 0, 8),                          // muneca
-      es(.052, skin, 1, .88, .84, 0, -.518, 0, 8),                      // palma
-      ...[0, 1, 2, 3].map(i => es(.014, skin, 1, 1.5, 1, (i - 1.5) * .022, -.575, .006, 8)),
-      es(.027, skin, 1, 1, 1, -.038, -.500, .018, 8)                    // pulgar
-    ]);
+      es(.052, skin, 1, .88, .84, 0, -.518, 0, 8)                       // palma
+    ];
+    if (!LOD) {
+      armParts.push(...[0, 1, 2, 3].map(i => es(.014, skin, 1, 1.5, 1, (i - 1.5) * .022, -.575, .006, 8)));
+      armParts.push(es(.027, skin, 1, 1, 1, -.038, -.500, .018, 8));    // pulgar
+    }
+    const arm = merge(armParts);
 
     // ---- pierna con rodilla, pantorrilla y zapato ----
     const leg = merge([
@@ -134,6 +149,7 @@
     ]);
     const res = { body, arm, leg };
     H3[key] = res;
+    LOD = prevLod;
     return res;
   }
   const H3 = {};
@@ -142,6 +158,7 @@
   function mkHuman3(sh, pa, ha, hat, build) {
     const g = new T.Group();
     const G = hgeo3(sh, pa, ha, hat, build);
+    const GL = hgeo3(sh, pa, ha, hat, build, 1);      // version simplificada (LOD por distancia)
     const bodyM = new T.Mesh(G.body, HMAT3);
     const pv = (x, y, ge) => { const q = new T.Group(); q.position.set(x, y, 0); q.add(new T.Mesh(ge, HMAT3)); g.add(q); return q; };
     g.add(bodyM); scene.add(g);
@@ -151,11 +168,8 @@
     };
     o._m = [bodyM, o.aL.children[0], o.aR.children[0], o.lL.children[0], o.lR.children[0]];
     o._hi = [G.body, G.arm, G.arm, G.leg, G.leg];
-    o._lo = null;
+    o._lo = [GL.body, GL.arm, GL.arm, GL.leg, GL.leg];
     return o;
-  }
-  function lowGeo(sh, pa, ha, hat) {
-    try { const o = hgeo(sh, pa, ha, hat); return [o.body, o.arm, o.arm, o.leg, o.leg]; } catch (e) { return null; }
   }
   function setLod(h, hi) {
     if (!h || !h._lo) return;
@@ -240,7 +254,7 @@
     // e inmoviles en el centro de la ciudad, en medio del punto de aparicion)
     nh.g.visible = obj.g.visible !== false;
     obj.g = nh.g; obj.aL = nh.aL; obj.aR = nh.aR; obj.lL = nh.lL; obj.lR = nh.lR; obj.ph = nh.ph; obj.s0 = 1;
-    obj._m = nh._m; obj._hi = nh._hi; obj._lo = lowGeo(sh, pa, ha, hat); obj._lod = true;
+    obj._m = nh._m; obj._hi = nh._hi; obj._lo = nh._lo; obj._lod = true;
     swaps++;
     return nh;
   }
@@ -253,6 +267,10 @@
   try {
     (typeof carShops !== 'undefined') && carShops.forEach(s => { if (s.h) swapHuman(s.h, 0xff8a3a, 0x222222, 0x241a12, 0); });
   } catch (e) { }
+  // Rita (la informante de src/mision.js): mismo modelo que el resto
+  try {
+    if (window.NC && NC.mision && NC.mision.rita) swapHuman(NC.mision.rita.h, 0x2f6f8a, 0x2a2a36, 0x3a2418, 0);
+  } catch (e) { NC.log('gente: rita', e); }
   // jugador
   try {
     if (typeof setPlayerLook === 'function' && typeof curLook === 'function') {

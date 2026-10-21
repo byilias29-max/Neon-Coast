@@ -351,8 +351,6 @@
     } catch (e) { }
     return _adv && _adv.apply(this, arguments);
   };
-  // pista en el mapa
-  try { if (window.NC && NC.sto) { } } catch (e) { }
   NC.mision = M;
   NC.log('mision: "El paquete de Colina" montada (9 fases)');
 })();

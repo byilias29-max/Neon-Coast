@@ -60,7 +60,7 @@ body.ncui,body.ncui *{cursor:none !important}
   };
 
   /* ---------- interaccion ---------- */
-  const HIT = 'button,a,input,select,textarea,label,.row,.opt,.card,.tag,.tab,.chip,[onclick],[data-act],#bm,#mm,#mmw';
+  const HIT = 'button,a,input,select,textarea,label,.row,.opt,.card,.tag,.tab,.chip,[onclick],[data-act],#nbm,#nbm canvas.nbc,#mm,#mmw';
   let mx = -999, my = -999, hov = false, prs = false, shown = false;
   function setHov(v) { if (v === hov) return; hov = v; cur.classList.toggle('hov', v); }
   function hitAt(x, y) {

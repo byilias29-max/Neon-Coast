@@ -17,9 +17,5 @@
     // el envoltorio del paso principal lo hace boot.js al final (ultima declaracion gana)
     NC.__wrapped = true;
   } catch (e) { }
-  try {
-    // paso rasterizado de nitidez maxima para texturas canvas (calles/edificios)
-    NC.css('#help{display:none !important}');
-  } catch (e) { }
   NC.log('core listo, build', NC.version);
 })();

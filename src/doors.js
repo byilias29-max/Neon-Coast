@@ -200,8 +200,11 @@
   NC.Doors = { get state() { return DR; }, get panelA() { return dL.rotation.y; }, debug: true };
 
   // red de seguridad: SOLO si una fase se queda colgada a mitad de la secuencia (nunca en reposo)
-  let wdLast = '', wdAt = 0;
-  setInterval(() => {
+  let wdLast = '', wdAt = 0, wdT = 0;
+  NC.hooks.post.push(dt => {
+    wdT += (dt || 0);
+    if (wdT < .5) return;                 // se mira dos veces por segundo, no cada frame
+    wdT = 0;
     try {
       const k = DR.ph + '/' + (DR.act || '') + '/' + dL.rotation.y.toFixed(2);
       if (k !== wdLast) { wdLast = k; wdAt = performance.now(); return; }
@@ -221,5 +224,5 @@
       }
       endToIdle();
     } catch (e) { }
-  }, 500);
+  });
 })();

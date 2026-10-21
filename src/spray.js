@@ -105,14 +105,17 @@
   const ray = new T.Raycaster();
   const ndc = new T.Vector2();
   let hitPoint = null, hitNormal = null, hitObj = null;
+  // ultima posicion del raton (si no esta capturado el spray sale del cursor, no del centro)
+  let mouseX = -1, mouseY = -1;
+  addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; }, { passive: true });
   function apuntar() {
     try {
       if (!pintables.length) return false;
       if (document.pointerLockElement) {
         ndc.set(0, 0);                                   // con raton capturado: la mira
       } else {
-        const m = document.getElementById('mouse');
-        ndc.set((m ? m.x / window.innerWidth : .5) * 2 - 1, -(m ? m.y / window.innerHeight : .5) * 2 + 1);
+        const px = mouseX >= 0 ? mouseX : innerWidth / 2, py = mouseY >= 0 ? mouseY : innerHeight / 2;
+        ndc.set((px / innerWidth) * 2 - 1, -(py / innerHeight) * 2 + 1);
       }
       ray.setFromCamera(ndc, camera);
       ray.far = 60;
