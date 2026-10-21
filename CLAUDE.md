@@ -102,7 +102,7 @@ No son el mismo módulo:
 - `src/mission.js` → `src/mision.js`: la **misión de historia** de 9 fases "El paquete de Colina"
   (Rita Vidal, la nave, la caja fuerte). Vive en `NC.mision`.
 - `src/missions.js`: el **gate de avance de las misiones sandbox** que define `index.html`
-  (la lista `MIS` de 8 misiones sueltas + `freeMis()`): comprueba cada paso (robar, matar, wanted,
+  (la lista `MIS` de 14 misiones sueltas + `freeMis()`): comprueba cada paso (robar, matar, wanted,
   velocidad, dinero, comprar) y hace avanzar la misión.
 
 ## Verificación
