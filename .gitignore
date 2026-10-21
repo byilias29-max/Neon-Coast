@@ -3,5 +3,34 @@ shots/
 __shot.png
 shotserver.mjs
 
-.vercel
-.env*
+# artefactos de la suite de Playwright (se regeneran en cada ejecucion)
+tests/shot_dpr*.png
+tests/sto_zone_snippet.js
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# node / javascript
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# editores y SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# entorno y builds
+.env
+.env.*
+!.env.example
+.vercel/
+dist/
+coverage/
+*.log

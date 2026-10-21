@@ -1,4 +1,4 @@
-/* Neon Coast - nucleo de modulos (F:\neoncoast) */
+/* Neon Coast - nucleo de modulos */
 (function () {
   'use strict';
   const NC = window.NC = {

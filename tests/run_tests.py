@@ -1,10 +1,19 @@
-import math, random, sys, json, pathlib
+import math, random, sys, json, pathlib, tempfile
 HERE = pathlib.Path(__file__).resolve().parent
-URL = (HERE / "test.html").as_uri()
+REPO = HERE.parent
+# todo lo que genera la suite vive en un directorio temporal: el repo no se toca
+TMP = pathlib.Path(tempfile.mkdtemp(prefix="neon-coast-tests-"))
+SNIPPET = TMP / "sto_zone_snippet.js"
 # extrae la logica REAL de barrios de story.js para probarla
-_s = (HERE.parent / "src" / "story.js").read_text(encoding="utf-8")
+_s = (REPO / "src" / "story.js").read_text(encoding="utf-8")
 _a = _s.index("function cellOf(v)"); _b = _s.index("\n", _s.index("for (const z of ZN) NC.sto.zones.push"))
-(HERE / "sto_zone_snippet.js").write_text("(function(){const NC=window.NC;\n" + _s[_a:_b] + "\n})();\n", encoding="utf-8")
+SNIPPET.write_text("(function(){const NC=window.NC;\n" + _s[_a:_b] + "\n})();\n", encoding="utf-8")
+# copia de test.html con rutas absolutas (el snippet y los modulos quedan fuera del repo)
+_html = (HERE / "test.html").read_text(encoding="utf-8")
+_html = _html.replace('src="sto_zone_snippet.js"', 'src="%s"' % SNIPPET.as_uri())
+_html = _html.replace('"../src/', '"%s/' % (REPO / "src").as_uri())
+(TMP / "test.html").write_text(_html, encoding="utf-8")
+URL = (TMP / "test.html").as_uri()
 from playwright.sync_api import sync_playwright
 
 random.seed(7)
@@ -264,7 +273,7 @@ def run(dsf):
         check("mapa abierto: X y M SI llegan al juego (quitar marca / cerrar)", got == ["KeyX", "KeyM"], got)
         errs2 = [e for e in errs]
         check("sin errores de consola/pagina durante toda la sesion", not errs2, errs2[:3])
-        pg.screenshot(path=str(HERE / f"shot_dpr{dsf}.png"))
+        pg.screenshot(path=str(TMP / f"shot_dpr{dsf}.png"))
         b.close()
 
 for dsf in (1, 2): run(dsf)
@@ -280,4 +289,5 @@ with sync_playwright() as p:
     b.close()
 
 print("\nRESULTADO:", "TODO OK" if not FAIL else f"{len(FAIL)} FALLOS -> {FAIL}")
+print("capturas y snippet generados en:", TMP)
 sys.exit(1 if FAIL else 0)

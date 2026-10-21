@@ -1,4 +1,4 @@
-/* Neon Coast - texturas procedurales (F:\neoncoast) */
+/* Neon Coast - texturas procedurales */
 (function () {
   'use strict';
   if (!window.NC || !window.THREE) return;

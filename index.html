@@ -1,7 +1,26 @@
 ﻿<!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Neon Coast</title>
+<title>Neon Coast — Atardecer · Delito · Velocidad</title>
+<meta name="description" content="Neon Coast: juego 3D de mundo abierto en el navegador. Recorre la ciudad costera a pie o en coche, atraca tiendas, tunea tu coche y escapa de la policía de 5 estrellas.">
+<meta name="theme-color" content="#1b0638">
+<meta name="color-scheme" content="dark">
+<meta name="author" content="byilias29-max">
+<link rel="canonical" href="https://neon-coast.vercel.app/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Neon Coast">
+<meta property="og:title" content="Neon Coast — Atardecer · Delito · Velocidad">
+<meta property="og:description" content="Ciudad costera abierta en 3D: atracos, misiones, tuneo de coches y una policía de 5 estrellas.">
+<meta property="og:url" content="https://neon-coast.vercel.app/">
+<meta property="og:image" content="https://neon-coast.vercel.app/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Neon Coast">
+<meta name="twitter:description" content="Ciudad costera abierta en 3D: atracos, misiones, tuneo de coches y una policía de 5 estrellas.">
+<meta name="twitter:image" content="https://neon-coast.vercel.app/og.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23150d3a'/%3E%3Cpath d='M8 46h48' stroke='%2327e6ff' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='26' r='14' fill='%23ff5a7a'/%3E%3Cpath d='M32 12v28' stroke='%23ffd24a' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
 :root{--ink:#fff7ea;--glass:rgba(21,13,58,.66);--hot:#ff5a7a;--cyan:#27e6ff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#fff7ea}}
@@ -102,6 +121,7 @@ html,body{height:100%;margin:0;background:#150d3a;overflow:hidden;color:var(--in
 #pop{position:absolute;left:50%;top:58%;transform:translateX(-50%);font-size:18px;font-weight:800;color:#ffd24a;text-shadow:1px 1px 0 #000;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
 </style></head><body>
 <canvas id="c"></canvas>
+<noscript><div style="padding:2rem;font:1rem/1.5 system-ui,sans-serif;color:#fff">Este juego necesita JavaScript activado.</div></noscript>
 <div class="p" id="top"><b id="dist">Centro</b><span id="wx" style="font-size:12px;opacity:.85"></span><br><br>Dinero <span id="money">$0</span><div id="hpb"><div id="hp"></div></div><div id="armb"><div id="arm"></div></div><span id="st"></span></div>
 <div class="p" id="comp"><canvas id="cmp" width="320" height="34"></canvas></div><div class="p" id="obj">Objetivo</div><div class="p" id="mis"></div>
 <div class="p" id="mmw"><canvas id="mm" width="150" height="150"></canvas></div><div class="p" id="wp"></div>
@@ -123,7 +143,8 @@ html,body{height:100%;margin:0;background:#150d3a;overflow:hidden;color:var(--in
 <div id="secchip" style="display:none;margin-top:10px;font-size:13px;color:#ffd24a">★ MIEMBRO NIVEL 7 — sala desbloqueada (Konami)</div><button id="play">▶ JUGAR</button>
 <p class="controls">WASD mover · Ratón cámara · Shift correr · Clic/J atacar · Click-der apuntar · 1-4 armas · I inventario · E usar · B tienda · H botiquín · R recargar · F coche · Espacio saltar · C agacharse</p>
 </div></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- Three.js r128 servido desde el repo (vendor/): el juego arranca sin depender de un CDN -->
+<script src="vendor/three.min.js"></script>
 <script>
 const $=id=>document.getElementById(id),rnd=(a,b)=>a+Math.random()*(b-a),PI=Math.PI,pick=a=>a[Math.random()*a.length|0];
 const CELL=76,R=16,B=60,H=5,EXT=H*CELL+CELL/2,DX=[1,0,-1,0],DZ=[0,1,0,-1];
