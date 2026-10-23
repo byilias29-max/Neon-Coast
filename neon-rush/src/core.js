@@ -51,7 +51,19 @@
       sec = Math.max(0, Math.floor(sec));
       const m = Math.floor(sec / 60), s = sec % 60;
       return m + ':' + (s < 10 ? '0' : '') + s;
-    }
+    },
+    /* ------- easing extra para juice ------- */
+    easeOutElastic(t) { const c4 = (2 * Math.PI) / 3; return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1; },
+    easeOutBounce(t) { const n1 = 7.5625, d1 = 2.75; if (t < 1 / d1) return n1 * t * t; else if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75; else if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375; return n1 * (t -= 2.625 / d1) * t + 0.984375; },
+    easeInOutExpo(t) { return t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2; },
+    easeOutCirc(t) { return Math.sqrt(1 - Math.pow(t - 1, 2)); },
+    /* color utils */
+    hsl2rgb(h, s, l) { s /= 100; l /= 100; const k = n => (n + h / 30) % 12; const a = s * Math.min(l, 1 - l); const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1))); return { r: Math.round(f(0) * 255), g: Math.round(f(8) * 255), b: Math.round(f(4) * 255) }; },
+    rgb(h, s, l, a) { const c = this.hsl2rgb(h, s, l); return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + (a === undefined ? 1 : a) + ')'; },
+    /* random gaussian */
+    randGauss(mean, std) { let u = 0, v = 0; while (u === 0) u = Math.random(); while (v === 0) v = Math.random(); return mean + std * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+    /* weighted random */
+    weightedPick(items, weightFn) { const weights = items.map(weightFn); const total = weights.reduce((a, b) => a + b, 0); let r = Math.random() * total; for (let i = 0; i < items.length; i++) { r -= weights[i]; if (r <= 0) return items[i]; } return items[items.length - 1]; }
   });
 
   /* ---------------- RNG con semilla ---------------- */
@@ -209,10 +221,14 @@
         avatar: 'nova',
         unlocked: { nova: true },
         best: { score: 0, wave: 0, kills: 0, time: 0 },
-        stats: { runs: 0, kills: 0, wave: 0, time: 0, deaths: 0 },
+        stats: { runs: 0, kills: 0, wave: 0, time: 0, deaths: 0, perfectWaves: 0, hyperActivations: 0, dashes: 0, grazes: 0, chestsOpened: 0, bossesKilled: 0, prestige: 0, totalScore: 0 },
         contracts: { date: '', list: [] },
-        settings: { mute: false, shake: 1, glow: 1 },
-        seen: { intro: false }
+        weekly: { seed: 0, completed: false, score: 0, modifiers: [] },
+        daily: { seed: 0, completed: false, score: 0, modifiers: [] },
+        settings: { mute: false, shake: 1, glow: 1, trails: 1, screenshake: 1, hitstop: 1, particles: 1, colorblind: false, reducedFlash: false },
+        seen: { intro: false },
+        prestige: { level: 0, totalScore: 0, unlockedPerks: {} },
+        leaderboards: { daily: [], weekly: [], allTime: [] }
       };
     },
 
@@ -221,10 +237,15 @@
       try { d = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { d = null; }
       this.data = Object.assign(this.defaults(), d || {});
       this.data.meta = Object.assign({}, d && d.meta);
-      this.data.settings = Object.assign({ mute: false, shake: 1, glow: 1 }, d && d.settings);
+      this.data.settings = Object.assign({ mute: false, shake: 1, glow: 1, trails: 1, screenshake: 1, hitstop: 1, particles: 1, colorblind: false, reducedFlash: false }, d && d.settings);
       this.data.unlocked = Object.assign({ nova: true }, d && d.unlocked);
       this.data.best = Object.assign({ score: 0, wave: 0, kills: 0, time: 0 }, d && d.best);
-      this.data.stats = Object.assign({ runs: 0, kills: 0, wave: 0, time: 0, deaths: 0 }, d && d.stats);
+      this.data.stats = Object.assign({ runs: 0, kills: 0, wave: 0, time: 0, deaths: 0, perfectWaves: 0, hyperActivations: 0, dashes: 0, grazes: 0, chestsOpened: 0, bossesKilled: 0, prestige: 0, totalScore: 0 }, d && d.stats);
+      this.data.contracts = Object.assign({ date: '', list: [] }, d && d.contracts);
+      this.data.weekly = Object.assign({ seed: 0, completed: false, score: 0, modifiers: [] }, d && d.weekly);
+      this.data.daily = Object.assign({ seed: 0, completed: false, score: 0, modifiers: [] }, d && d.daily);
+      this.data.prestige = Object.assign({ level: 0, totalScore: 0, unlockedPerks: {} }, d && d.prestige);
+      this.data.leaderboards = Object.assign({ daily: [], weekly: [], allTime: [] }, d && d.leaderboards);
       return this.data;
     },
 
@@ -238,11 +259,49 @@
       this.save();
     },
 
+    addStat(key, val) {
+      if (this.data.stats[key] !== undefined) this.data.stats[key] += val;
+      this.save();
+    },
+
+    checkPrestige() {
+      const p = this.data.prestige;
+      const threshold = 100000 + p.level * 50000;
+      if (this.data.stats.totalScore >= p.totalScore + threshold) {
+        p.level++;
+        p.totalScore = this.data.stats.totalScore;
+        p.unlockedPerks['prestige_' + p.level] = true;
+        NR.Save.data.nucleos += p.level * 500;
+        this.save();
+        return p.level;
+      }
+      return 0;
+    },
+
     reset() {
       this.data = this.defaults();
       this.save();
     }
   });
+
+  /* ---------------- prestigio: perks ---------------- */
+  const PrestigePerks = {
+    list: [
+      { id: 'prestige_1', name: 'ECO DE GUERRA', desc: 'Empiezas cada run con +1 arma aleatoria desbloqueada', icon: '⚔' },
+      { id: 'prestige_2', name: 'VITALIDAD PRIMORDIAL', desc: '+25% vida máxima base, +1 carga de dash inicial', icon: '♥' },
+      { id: 'prestige_3', name: 'FLUJO ETERNO', desc: 'La barra de hiper se llena 30% más rápido', icon: '∞' },
+      { id: 'prestige_4', name: 'MAESTRO DE ARMAS', desc: 'Todas las armas empiezan en nivel 1', icon: '⬆' },
+      { id: 'prestige_5', name: 'SUERTE DEL CAMPEÓN', desc: '+50% suerte, los cofres aparecen el doble de seguido', icon: '☘' },
+      { id: 'prestige_6', name: 'ESCUDO REACTIVO', desc: 'Ganas 15 de escudo al matar un élite', icon: '◇' },
+      { id: 'prestige_7', name: 'INSTINTO DEPREDADOR', desc: 'El dash dura 50% más y hace 25% más daño', icon: '⚡' },
+      { id: 'prestige_8', name: 'CADENA INFINITA', desc: 'El combo no se rompe por tiempo (solo por daño)', icon: '🔗' },
+      { id: 'prestige_9', name: 'ETERNO RETORNO', desc: 'Al morir con hiper cargado, revives una vez al 30% vida', icon: '🔄' },
+      { id: 'prestige_10', name: 'ASCENSIÓN', desc: 'Desbloquea avatar secreto: VOID', icon: '☐' }
+    ],
+    has(id) { return !!NR.Save.data.prestige.unlockedPerks[id]; },
+    get(id) { return this.list.find(p => p.id === id); }
+  };
+  NR.Prestige = { Perks: PrestigePerks };
 
   NR.Core = { M, Input, Save };
 })();
