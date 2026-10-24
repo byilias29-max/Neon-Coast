@@ -175,8 +175,8 @@
     ];
     return D[gi] || 'Articulo de la tienda.';
   }
-  function openShop(kind) {
-    const shop = kind === 'car' ? nearCarShop() : nearShop();
+  function openShop(kind, rec) {
+    const shop = rec || (kind === 'car' ? nearCarShop() : nearShop());
     if (!shop) return false;
     ST.kind = kind; ST.shop = shop; ST.sel = 0;
     ST.list = kind === 'car' ? CARSHOP.map((it, i) => ({ i, it, gi: -1 })) : shop.stock.map((gi, i) => ({ i, it: SHOP[gi], gi }));

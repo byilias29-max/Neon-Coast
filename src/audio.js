@@ -16,7 +16,9 @@
 
   let ac = null, master = null;
   let rainG = null, windG = null, seaG = null, engOsc = null, engG = null, engFlt = null;
-  let nextThunder = 0;
+  let synthG = null, synthOsc = [], synthFlt = [];
+  let stepBuf = null;
+  let nextThunder = 0, nextNote = 0, currentNote = -1;
 
   function noiseBuf(seconds) {
     const b = ac.createBuffer(1, seconds * ac.sampleRate, ac.sampleRate);
@@ -55,6 +57,17 @@
       engFlt = ac.createBiquadFilter(); engFlt.type = 'lowpass'; engFlt.frequency.value = 300;
       engG = ac.createGain(); engG.gain.value = 0;
       engOsc.connect(engFlt); engFlt.connect(engG); engG.connect(master); engOsc.start();
+      // sintetizador retro (melodía simple)
+      synthG = ac.createGain(); synthG.gain.value = 0.08;
+      for (let i = 0; i < 2; i++) {
+        synthOsc[i] = ac.createOscillator(); synthOsc[i].type = i === 0 ? 'square' : 'triangle';
+        synthFlt[i] = ac.createBiquadFilter(); synthFlt[i].type = 'lowpass'; synthFlt[i].frequency.value = 800;
+        synthOsc[i].connect(synthFlt[i]); synthFlt[i].connect(synthG);
+        synthOsc[i].start();
+      }
+      synthG.connect(master);
+      // pisadas: pequeno buffer de ruido reutilizado (sin crear basura por paso)
+      stepBuf = noiseBuf(.16);
       return true;
     } catch (e) { NC.log('audio init', e); ac = null; return false; }
   }
@@ -85,7 +98,28 @@
     } catch (e) { }
   }
 
-  NC.Audio = { thunder, ensure };
+  // pisada: ruido corto con paso alto, volumen bajo y decaimiento rapido
+  function step(run) {
+    if (!window.SND) return;
+    if (!ensure()) return;
+    if (!ac || ac.state !== 'running' || !master || !stepBuf) return;
+    try {
+      const t0 = ac.currentTime;
+      const src = ac.createBufferSource(); src.buffer = stepBuf;
+      const f = ac.createBiquadFilter(); f.type = 'bandpass';
+      f.frequency.setValueAtTime(run ? 1450 : 980, t0);
+      f.Q.value = 1.15;
+      const g = ac.createGain();
+      const vol = run ? .065 : .042;
+      g.gain.setValueAtTime(.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol, t0 + .008);
+      g.gain.exponentialRampToValueAtTime(.0001, t0 + (run ? .11 : .14));
+      src.connect(f); f.connect(g); g.connect(master);
+      src.start(t0); src.stop(t0 + .17);
+    } catch (e) { }
+  }
+
+  NC.Audio = { thunder, ensure, step };
 
   let lastWx = '';
   setInterval(() => {
@@ -113,6 +147,27 @@
       // truenos solo bajo lluvia
       if (rain && performance.now() > nextThunder) { thunder(); nextThunder = performance.now() + 12000 + Math.random() * 22000; }
       if (!rain && lastWx === 'lluvia') nextThunder = performance.now() + 5000;
+      // sintetizador synthwave: arpegio suave que sube en el coche y en persecución
+      try {
+        if (synthG && synthOsc[0]) {
+          const ahora = performance.now();
+          let nivel = .05, vel = 520;
+          try { if (window.NC && NC.Pol && NC.Pol.estado === 'persecucion') { nivel = .085; vel = 300; } } catch (e) { }
+          if (!P.foot) { nivel += .02; vel = Math.max(220, vel - spd * 3); }
+          ramp(synthG.gain, window.SND ? nivel : 0, .9);
+          if (ahora > nextNote) {
+            const esc = [0, 3, 5, 7, 10, 12, 15, 12, 10, 7, 5, 3];
+            const base = P.foot ? 110 : 130.81;
+            currentNote = (currentNote + 1) % esc.length;
+            const semis = esc[currentNote];
+            const f = base * Math.pow(2, semis / 12);
+            synthOsc[0].frequency.setTargetAtTime(f, ac.currentTime, .03);
+            synthOsc[1].frequency.setTargetAtTime(f * 2.005, ac.currentTime, .03);
+            synthFlt[0].frequency.setTargetAtTime(600 + (semis / 15) * 1400, ac.currentTime, .06);
+            nextNote = ahora + vel + Math.random() * 90;
+          }
+        }
+      } catch (e) { }
       lastWx = WX.wx;
     } catch (e) { }
   }, 350);

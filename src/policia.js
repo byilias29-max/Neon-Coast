@@ -94,6 +94,7 @@
     POL.victimas = 0;
     POL.infracciones = 0;
     CARS.splice(0).forEach(u => { try { scene.remove(u.g); } catch (e) { } });
+    limpiarBloqueos();
     escribirNivel(0);
     try { P.wt = 0; } catch (e) { }
     try { localStorage.setItem(KEY, JSON.stringify({ n: 0, t: Date.now() })); } catch (e) { }
@@ -366,6 +367,8 @@
       }
       actualizarEstado(dt, px, pz);
       actualizarPatrullas(dt, px, pz, th, !P.foot);
+      actualizarHeli(dt, px, pz);
+      actualizarBloqueos(dt, px, pz, th, !P.foot);
       // durante una busqueda los agentes a pie rondan la ultima posicion conocida
       if (POL.estado === 'busqueda' && POL.pers) {
         const L = POL.pers.ultimo;
@@ -396,7 +399,117 @@
     } catch (e) { }
   });
 
-  // ---------- limpiar al ser detenido ----------
+  // ---------- helicoptero policial (4-5 estrellas) ----------
+  let heli = null, heliT = 0, heliRot = null, heliSpot = null, heliBeam = null, heliPool = null;
+  function crearHeli() {
+    try {
+      const g = new T.Group();
+      const bodyM = new T.MeshStandardMaterial({ color: 0x1b2230, roughness: .55, metalness: .35 });
+      const body = new T.Mesh(new T.SphereGeometry(2.1, 14, 10), bodyM); body.scale.set(1, .78, 1.55); g.add(body);
+      const cabin = new T.Mesh(new T.SphereGeometry(1.25, 12, 9), new T.MeshStandardMaterial({ color: 0x9fd8e8, roughness: .08, metalness: .7, transparent: true, opacity: .55 }));
+      cabin.position.set(0, .25, 1.5); cabin.scale.set(1, .9, 1.15); g.add(cabin);
+      const tail = new T.Mesh(new T.BoxGeometry(.32, .32, 4.2), bodyM); tail.position.set(0, .15, -3.1); g.add(tail);
+      const fin = new T.Mesh(new T.BoxGeometry(.12, 1.35, .9), bodyM); fin.position.set(0, .75, -4.9); g.add(fin);
+      const mast = new T.Mesh(new T.CylinderGeometry(.09, .12, .55, 8), new T.MeshStandardMaterial({ color: 0x30384a, roughness: .5 })); mast.position.y = 1.55; g.add(mast);
+      heliRot = new T.Group(); heliRot.position.y = 1.85; g.add(heliRot);
+      const bladeM = new T.MeshStandardMaterial({ color: 0x0e1118, roughness: .6 });
+      for (let i = 0; i < 2; i++) { const b = new T.Mesh(new T.BoxGeometry(8.4, .055, .42), bladeM); b.rotation.y = i * PI / 2; heliRot.add(b); }
+      const trot = new T.Group(); trot.position.set(.16, .35, -4.9); g.add(trot);
+      for (let i = 0; i < 2; i++) { const b = new T.Mesh(new T.BoxGeometry(.06, 2.1, .16), bladeM); b.rotation.z = i * PI / 2; trot.add(b); }
+      heliRot.userData.tail = trot;
+      const skidM = new T.MeshStandardMaterial({ color: 0x0a0d13, roughness: .7 });
+      for (const sx of [-1, 1]) { const sk = new T.Mesh(new T.CylinderGeometry(.07, .07, 4.4, 6), skidM); sk.rotation.x = PI / 2; sk.position.set(sx * 1.35, -1.55, .2); g.add(sk); }
+      // luces
+      const lamp = new T.Mesh(new T.SphereGeometry(.14, 8, 6), new T.MeshBasicMaterial({ color: 0xff2a4a })); lamp.position.set(0, -1.1, 1.9); g.add(lamp);
+      const lamp2 = new T.Mesh(new T.SphereGeometry(.14, 8, 6), new T.MeshBasicMaterial({ color: 0x2a6aff })); lamp2.position.set(0, .4, -5.05); g.add(lamp2);
+      // foco de busqueda (haz + charco en el suelo)
+      heliBeam = new T.Mesh(new T.ConeGeometry(3.4, 26, 18, 1, true), new T.MeshBasicMaterial({ color: 0xdfeaff, transparent: true, opacity: .10, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending, fog: false }));
+      heliBeam.position.y = -.7; heliBeam.rotation.x = PI; g.add(heliBeam);
+      heliPool = new T.Mesh(new T.CircleGeometry(3.6, 22), new T.MeshBasicMaterial({ map: (typeof glowT !== 'undefined' ? glowT : null), color: 0xcfe4ff, transparent: true, opacity: .28, depthWrite: false, blending: T.AdditiveBlending }));
+      heliPool.rotation.x = -PI / 2; heliPool.position.y = .12; g.add(heliPool);
+      scene.add(g);
+      heli = { g, lamp, lamp2, beam: heliBeam, pool: heliPool, x: 0, z: 0, y: 44, rot: 0, on: false };
+    } catch (e) { NC.log('policia: heli', e); heli = null; }
+  }
+  function actualizarHeli(dt, px, pz) {
+    try {
+      const activo = POL.nivel >= 4;
+      if (!activo) { if (heli && heli.on) { heli.on = false; heli.g.visible = false; } heliT = 0; return; }
+      if (!heli) crearHeli();
+      if (!heli) return;
+      if (!heli.on) { heli.on = true; heli.g.visible = true; heli.x = px + 60; heli.z = pz - 60; heli.y = 46; }
+      // orbita sobre el jugador, con retardo
+      heliT += dt;
+      const orb = heliT * .55, rad = 17;
+      const tx = px + Math.cos(orb) * rad, tz = pz + Math.sin(orb) * rad;
+      const k = Math.min(1, dt * .85);
+      heli.x += (tx - heli.x) * k; heli.z += (tz - heli.z) * k;
+      heli.y += (42 + Math.sin(heliT * 1.4) * 1.6 - heli.y) * Math.min(1, dt * .7);
+      heli.g.position.set(heli.x, heli.y, heli.z);
+      heli.g.rotation.y = Math.atan2(px - heli.x, pz - heli.z);
+      heli.g.rotation.z = Math.sin(heliT * .9) * .05;
+      heliRot.rotation.y += dt * 28;
+      if (heliRot.userData.tail) heliRot.userData.tail.rotation.z += dt * 40;
+      const f = (frame % 30) < 15;
+      heli.lamp.material.color.setHex(f ? 0xff2a4a : 0x2a0a14);
+      heli.lamp2.material.color.setHex(f ? 0x0a142a : 0x2a6aff);
+      heli.beam.material.opacity = .08 + .03 * Math.sin(heliT * 5);
+      heli.pool.material.opacity = .22 + .08 * Math.sin(heliT * 3);
+      if (frame % 40 === 0) { try { beep(58, .22, 'sawtooth', .02); } catch (e) { } }
+    } catch (e) { }
+  }
+
+  // ---------- bloqueos de carretera (4-5 estrellas, solo en coche) ----------
+  const BLOQ = [];
+  let bloqT = 5;
+  function crearBloqueo(px, pz, th) {
+    try {
+      const ax = px + Math.sin(th) * 70, az = pz + Math.cos(th) * 70;
+      const s = (typeof snap === 'function') ? snap(ax, az) : { x: ax, z: az };
+      const rx = Math.cos(th), rz = -Math.sin(th);      // perpendicular al avance
+      for (let i = 0; i < 2; i++) {
+        const g = new T.Group();
+        const car = mkCar(0x14161f);
+        if (car) g.add(car);
+        const s1 = new T.Mesh(new T.BoxGeometry(1.05, .16, .26), new T.MeshBasicMaterial({ color: 0xff2a4a })); s1.position.set(0, 1.62, -.16); g.add(s1);
+        const s2 = new T.Mesh(new T.BoxGeometry(1.05, .16, .26), new T.MeshBasicMaterial({ color: 0x2a6aff })); s2.position.set(0, 1.62, .16); g.add(s2);
+        const off = (i === 0 ? -1 : 1) * 3.6;
+        const x = s.x + rx * off, z = s.z + rz * off;
+        g.position.set(x, 0, z);
+        g.rotation.y = th + PI / 2;                      // atravesados en la calzada
+        scene.add(g);
+        BLOQ.push({ g, x, z, th, life: 26, s1, s2 });
+      }
+    } catch (e) { NC.log('policia: bloqueo', e); }
+  }
+  function actualizarBloqueos(dt, px, pz, th, enCoche) {
+    try {
+      bloqT = Math.max(0, bloqT - dt);
+      if (POL.nivel >= 4 && enCoche && bloqT <= 0 && BLOQ.length < 4) { crearBloqueo(px, pz, th); bloqT = 22; }
+      for (let i = BLOQ.length - 1; i >= 0; i--) {
+        const b = BLOQ[i];
+        b.life -= dt;
+        const f = (frame % 24) < 12;
+        b.s1.material.color.setHex(f ? 0xff2a4a : 0x2a0a14);
+        b.s2.material.color.setHex(f ? 0x0a142a : 0x2a6aff);
+        // bloquean de verdad al coche del jugador
+        if (enCoche && POL.nivel >= 3) {
+          const dx = px - b.x, dz = pz - b.z, d = Math.hypot(dx, dz);
+          if (d < 4.6 && d > .01 && speed > 2) {
+            const nx = dx / d, nz = dz / d;
+            P.vx *= .18; P.vz *= .18; speed = Math.hypot(P.vx, P.vz);
+            P.copT = Math.max(0, P.copT - dt * .3);
+            if (frame % 30 === 0) { try { beep(90, .18, 'sawtooth', .04); } catch (e) { } }
+            try { shake = Math.max(shake, .4); } catch (e) { }
+          }
+        }
+        if (b.life <= 0) { try { scene.remove(b.g); } catch (e) { } BLOQ.splice(i, 1); }
+      }
+    } catch (e) { }
+  }
+  function limpiarBloqueos() { BLOQ.splice(0).forEach(b => { try { scene.remove(b.g); } catch (e) { } }); if (heli) { heli.on = false; heli.g.visible = false; } }
+
+
   try {
     const _busted = window.openBusted;
     window.openBusted = function (c) { try { limpiarBusqueda(); } catch (e) { } return _busted && _busted.apply(this, arguments); };
@@ -410,6 +523,8 @@
     get copsMuertos() { return POL.copsMuertos; },
     setLevel(n, motivo) { try { setNivel(n, motivo || 'nivel manual'); } catch (e) { } },
     clear() { try { limpiarBusqueda(); } catch (e) { } },
+    get heli() { return heli; },
+    get bloqueos() { return BLOQ; },
     POL
   };
   NC.policia = POL;

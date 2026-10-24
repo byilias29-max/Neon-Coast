@@ -134,8 +134,8 @@ html,body{height:100%;margin:0;background:#150d3a;overflow:hidden;color:var(--in
 <div id="busted"><div class="box"><h2>Hospital Costa — Alta médica</h2><div class="sub">Se han retirado todos los objetos ilegales · Factura: $150 + 20% de tu dinero</div><ul id="rap"></ul><div class="sign"><button onclick="acceptBusted()">Firmar y Aceptar</button><span style="font-size:12px;opacity:.6">X _______________</span></div></div></div>
 <div id="start"><div class="sun"></div><div class="grid"></div><div class="menu">
 <h1>Neon Coast</h1><p class="tag" onclick="sunTap()" title="…">ATARDECER · DELITO · VELOCIDAD</p>
-<p class="desc">Ciudad costera abierta en 3D: recorre las calles a pie o en coche, atraca tiendas, compra armas y tunea tu máquina en el concesionario, completa 14 misiones sueltas y la misión de 9 fases y escapa de la policía de 5 estrellas.</p>
-<div class="stats"><span class="chip">14 misiones + libres · 1 de 9 fases</span><span class="chip">12 tiendas · 5 tipos</span><span class="chip">3 concesionarios AutoCosta</span><span class="chip">4 armas · turbo y blindaje</span><span class="chip">parque · semáforos · club</span></div>
+<p class="desc">Ciudad costera abierta en 3D: recorre las calles a pie o en coche, atraca tiendas, compra armas y tunea tu máquina en el concesionario, completa 17 misiones sueltas y la misión de 9 fases y escapa de la policía de 5 estrellas.</p>
+<div class="stats"><span class="chip">17 misiones + libres · 1 de 9 fases</span><span class="chip">12 tiendas · 5 tipos</span><span class="chip">3 concesionarios AutoCosta</span><span class="chip">4 armas · turbo y blindaje</span><span class="chip">parque · semáforos · club</span></div>
 <div class="cols"><div class="card"><h3>1 · Personaje</h3><div class="pvrow"><canvas id="chprev" width="96" height="128"></canvas><div><div class="sws" id="chsw" style="grid-template-columns:1fr 1fr"></div><p id="chname" style="margin:8px 0 0;font-size:13px;opacity:.85"></p></div></div><div class="cust"><label>Camisa<input type="color" id="cSh" oninput="pickCustom()"></label><label>Pantalón<input type="color" id="cPa" oninput="pickCustom()"></label><label>Pelo<input type="color" id="cHa" oninput="pickCustom()"></label></div><p class="mini">Toca un preset o personaliza los 3 colores. Verás la previsualización.</p></div>
 <div class="card"><h3>2 · Gráficos</h3><p style="margin:0 0 6px;font-size:13px">Preset calidad</p><div class="opt" id="qopt"></div><div class="rowline"><span>Resolución</span><output id="oRes2"></output></div><div class="opt" id="resopt"></div><div class="opt" id="resopt"></div><p style="margin:10px 0 6px;font-size:13px">Sombras</p><div class="opt" id="shopt"></div><p style="margin:10px 0 6px;font-size:13px">Resolución sombras</p><div class="opt" id="shres"></div><p style="margin:10px 0 6px;font-size:13px">Niebla</p><div class="opt" id="fogopt"></div><div class="rowline"><span>Brillo / exposición</span><output id="oExpo"></output></div><input type="range" id="rExpo" min="0.8" max="1.5" step="0.05" oninput="pickExpo(this.value)"><p style="margin:10px 0 6px;font-size:13px">Tráfico</p><div class="opt" id="traopt"></div><p style="margin:10px 0 6px;font-size:13px">Peatones</p><div class="opt" id="pedopt"></div></div>
 <div class="card"><h3>3 · Cámara y control</h3><div class="rowline"><span>Sensibilidad</span><output id="oSens"></output></div><input type="range" id="rSens" min="0.1" max="3" step="0.1" oninput="pickS(parseFloat(this.value))"><div class="opt" id="sopt"></div><p style="margin:10px 0 6px;font-size:13px">Invertir eje Y</p><div class="opt" id="invopt"></div><p style="margin:10px 0 6px;font-size:13px">Sonido</p><div class="opt" id="sndopt"></div><div class="rowline"><span>Campo visión (FOV)</span><output id="oFov"></output></div><input type="range" id="rFov" min="55" max="78" step="1" oninput="pickFov(parseInt(this.value))"><p class="mini">A pie y en coche. Mayor FOV = más velocidad aparente.</p></div></div>
@@ -701,14 +701,41 @@ const tgtRing=new THREE.Mesh(new THREE.RingGeometry(1.6,2.6,30),new THREE.MeshBa
 const tgt={x:0,z:0};
 // Misiones, ruta guiada y brujula
 const mis={m:0,s:0,t:0,r0:0,k0:0,e0:0},ip=(i,j)=>({x:i*CELL,z:j*CELL});
-const MIS = NC.missions.data;
+const MIS=[
+ {n:'A casa',r:200,s:[{t:'Entra en tu apartamento por la puerta (E)',g:()=>({x:429,z:129})}]},
+ {n:'Bienvenida',r:200,s:[{t:'Llega a la playa (este)',g:()=>({x:EXT+18,z:0})}]},
+ {n:'Reparto exprés',r:500,s:[{t:'Recoge el paquete',g:()=>ip(-3,2)},{t:'Entrégalo a tiempo',g:()=>ip(3,-3),lim:90}]},
+ {n:'Primer golpe',r:800,s:[{t:'Atraca una tienda con un arma (E)',rob:1,g:()=>{let b=null,bd=1e9;for(const s of shops)if(s.cool<=0){const d=Math.hypot(s.x-P.x,s.z-P.z);if(d<bd){bd=d;b=s}}return b||ip(0,0)}},{t:'Despista a la policía',ev:1}]},
+ {n:'Carrera costera',r:1000,s:[ip(-2,-3),ip(2,-3),ip(3,1),ip(0,3)].map((p,i)=>({t:'Punto de control '+(i+1)+'/4',g:()=>p,lim:32}))},
+ {n:'Cazador novato',r:700,s:[{t:'Noquea a 2 peatones o polis (ataca de cerca o dispara)',kill:2}]},
+ {n:'Velocidad máxima',r:600,s:[{t:'Alcanza 110 km/h en coche',speed:110}]},
+ {n:'Doble golpe',r:1200,s:[{t:'Atraca 2 tiendas (E con arma)',rob:2},{t:'Escapa con 2+ estrellas y despista',ev:1,wanted:2}]},
+ {n:'Repartidor incansable',r:1300,s:[{t:'Recoge en el puerto',g:()=>ip(-4,-2)},{t:'Entrega norte (60s)',g:()=>ip(1,4),lim:60},{t:'Entrega playa (60s)',g:()=>({x:EXT+18,z:20}),lim:60}]},
+ {n:'Fuga extrema',r:1400,s:[{t:'Lía una (atraca o ataca) hasta 3 estrellas',wanted:3},{t:'Despista a la policía',ev:1}]},
+ {n:'Inversor',r:1000,s:[{t:'Consigue $2500 en mano (atracos + misiones)',cash:2500}]},
+ {n:'Tour de tiendas',r:900,s:[{t:'Visita el Super del centro',g:()=>{const s2=shops.find(q=>q.type=='Super')||shops[0];return{x:s2.x,z:s2.z}}},{t:'Visita la Armería',g:()=>{const s2=shops.find(q=>q.type=='Armeria')||shops[1];return{x:s2.x,z:s2.z}}}]},
+ {n:'Tunea tu máquina',r:800,s:[{t:'Compra algo en un concesionario naranja (B)',buycar:1,g:()=>{let b=carShops[0],bd=1e9;for(const s2 of carShops){const d=Math.hypot(s2.x-P.x,s2.z-P.z);if(d<bd){bd=d;b=s2}}return{x:b.x,z:b.z}}}]},
+ {n:'Dinero con rumbo',r:1500,s:[{t:'Compra el apartamento: B junto a una tienda',buy:1}]},
+ {n:'Carrera nocturna',r:2500,s:[
+   {t:'Llega a la salida de la carrera',g:()=>ip(-2,2)},
+   {t:'Punto de control 1/4',g:()=>ip(-2,-2),lim:40},
+   {t:'Punto de control 2/4',g:()=>ip(2,-2),lim:40},
+   {t:'Punto de control 3/4',g:()=>ip(2,2),lim:40},
+   {t:'Meta final',g:()=>ip(-2,2),lim:40}]},
+ {n:'Asalto al almacén',r:3000,s:[
+   {t:'Abre la caja fuerte del almacén (E)',g:()=>({x:342,z:-342}),flag:'lootWare'},
+   {t:'Lleva el botín al concesionario',g:()=>({x:carShops[0].x,z:carShops[0].z})}]},
+ {n:'Fuga final (5 estrellas)',r:5000,s:[
+   {t:'Provoca a la policía hasta 5 estrellas',wanted:5},
+   {t:'Despista a la policía',ev:1}]}
+];
 function freeMis(){const k=pick(['reparto','golpe','caza','vel']);const a=Math.round(rnd(-3,3)),b=Math.round(rnd(-3,3)),c=Math.round(rnd(-3,3)),d=Math.round(rnd(-3,3));
  if(k=='golpe')return{n:'Golpe libre',r:600,s:[{t:'Atraca una tienda',rob:1},{t:'Despista a la poli',ev:1}]};
  if(k=='caza')return{n:'Caza libre',r:500,s:[{t:'Noquea a 2 (pelea o dispara)',kill:2}]};
  if(k=='vel')return{n:'Rally libre',r:500,s:[{t:'Alcanza 130 km/h',speed:130}]};
  return{n:'Reparto libre',r:150+Math.round(rnd(0,5))*50,s:[{t:'Recoge el paquete',g:()=>ip(a,b)},{t:'Entrégalo a tiempo',g:()=>ip(c,d),lim:80}]}}
 function curM(){return MIS[mis.m]||(MIS[mis.m]=freeMis())}
-function startStep(){const st=curM().s[mis.s];mis.t=st.lim||0;mis.r0=P.rob;mis.k0=P.kills;mis.e0=P.eng+P.carm+(P.turbo?1:0);tgt.on=!!st.g;if(st.g){const p=st.g();tgt.x=beam.position.x=p.x;tgt.z=beam.position.z=p.z}beam.visible=tgt.on;tgtRing.visible=tgt.on;tgtRing.position.set(tgt.x,.08,tgt.z);rebuildRoute()}
+function startStep(){const st=curM().s[mis.s];mis.t=st.lim||0;mis.f0=st.flag?(P[st.flag]||0):0;mis.r0=P.rob;mis.k0=P.kills;mis.e0=P.eng+P.carm+(P.turbo?1:0);tgt.on=!!st.g;if(st.g){const p=st.g();tgt.x=beam.position.x=p.x;tgt.z=beam.position.z=p.z}beam.visible=tgt.on;tgtRing.visible=tgt.on;tgtRing.position.set(tgt.x,.08,tgt.z);rebuildRoute()}
 function advance(){const m=curM();mis.s++;if(mis.s>=m.s.length){money+=m.r;toast('Misión completada · +$'+m.r);pop('+$'+m.r);[523,659,784].forEach((f,i)=>setTimeout(()=>beep(f,.1),i*110));mis.m++;mis.s=0}else toast('Siguiente: '+m.s[mis.s].t);startStep()}
 function failStep(){toast('Tiempo agotado · reinicias la misión');mis.s=0;startStep()}
 const RN=26,rg2=new THREE.BufferGeometry(),rpos=new Float32Array(RN*12),ruv=new Float32Array(RN*8),ridx=[];
@@ -766,7 +793,7 @@ const CARSHOP=[
  {n:'Motor nv (3 niveles)',b:0,p:()=>[500,900,1400][P.eng]||0,f:()=>{if(P.eng>=3)return 0;P.eng++;return 1}},
  {n:'Turbo costero',b:1200,f:()=>{if(P.turbo)return 0;P.turbo=1;return 1}}];
 function paintTo(c){const col=new THREE.Color(c),a=cbody.geometry.attributes.color.array;for(let i=0;i<24;i++)for(const o of [0,96]){const k=(o+i)*3;a[k]=O0.c[k]=col.r;a[k+1]=O0.c[k+1]=col.g;a[k+2]=O0.c[k+2]=col.b}cbody.geometry.attributes.color.needsUpdate=true}
-const nearCarShop=()=>carShops.find(s=>Math.hypot(s.x-(P.foot?P.fx:P.x),s.z-(P.foot?P.fz:P.z))<5.5);
+const nearCarShop=()=>carShops.find(s=>{const px=P.foot?P.fx:P.x,pz=P.foot?P.fz:P.z;return Math.hypot(s.x-px,s.z-pz)<5.5||(P.foot&&Math.hypot(s.x-5-px,s.z-9-pz)<6.5)});
 function buyCarItem(i){const s=nearCarShop();if(!s)return toast('Acércate al concesionario');const it=CARSHOP[i],pr=it.p?it.p():it.b;if(money<pr)return toast('Sin dinero: $'+pr);if(it.f()){money-=pr;toast('Instalado: '+it.n)}else toast('No lo necesitas');showInv()}
 function repair(){P.chp=100;const g=cbody.geometry;g.attributes.position.array.set(O0.p);g.attributes.color.array.set(O0.c);g.attributes.position.needsUpdate=g.attributes.color.needsUpdate=true;g.computeVertexNormals()}
 function paint(){const c=new THREE.Color(pick(COLS.concat([0xff3d8b,0xe03030,0x111111]))),a=cbody.geometry.attributes.color.array;for(let i=0;i<24;i++)for(const o of [0,96]){const k=(o+i)*3;a[k]=O0.c[k]=c.r;a[k+1]=O0.c[k+1]=c.g;a[k+2]=O0.c[k+2]=c.b}cbody.geometry.attributes.color.needsUpdate=true}
@@ -994,7 +1021,7 @@ function step(dt){frame++;
   updAI();
   const dd=Math.hypot(tgt.x-px,tgt.z-pz);
   if(wp){const wd=Math.hypot(wp.x-px,wp.z-pz),wv=$('wp');wv.textContent='Marca a '+Math.round(wd)+' m · X quitar';if(wd<10){wp=null;wpBeacon.visible=false;wpRing.visible=false;wv.style.display='none';pop('¡Destino!');[660,880].forEach((f,i)=>setTimeout(()=>beep(f,.09),i*100))}}
-  const ms=curM().s[mis.s];if(ms.wanted&&P.wanted>=ms.wanted)advance();else if(ms.wanted){}else if(ms.g&&dd<8)advance();else if(ms.rob&&P.rob-mis.r0>=(ms.rob===1?1:ms.rob))advance();else if(ms.kill&&P.kills-mis.k0>=ms.kill)advance();else if(ms.speed&&speed*3.6>=ms.speed)advance();else if(ms.cash&&money>=ms.cash)advance();else if(ms.buycar&&(P.eng+P.carm+(P.turbo?1:0)>mis.e0))advance();else if(ms.ev&&P.wanted<=0)advance();else if(ms.buy&&P.apt)advance();
+  const ms=curM().s[mis.s];if(ms.wanted&&P.wanted>=ms.wanted)advance();else if(ms.wanted){}else if(ms.g&&dd<8)advance();else if(ms.rob&&P.rob-mis.r0>=(ms.rob===1?1:ms.rob))advance();else if(ms.kill&&P.kills-mis.k0>=ms.kill)advance();else if(ms.speed&&speed*3.6>=ms.speed)advance();else if(ms.cash&&money>=ms.cash)advance();else if(ms.buycar&&(P.eng+P.carm+(P.turbo?1:0)>mis.e0))advance();else if(ms.ev&&P.wanted<=0)advance();else if(ms.buy&&P.apt)advance();else if(ms.flag&&(P[ms.flag]||0)-mis.f0>=1)advance();
   if(mis.t>0){mis.t-=dt;if(mis.t<=0)failStep()}if(frame%12==0)rebuildRoute();rt2.offset.y-=dt*1.2;
   wxTick(dt);if(P.apt){P.inc-=dt;if(P.inc<=0){P.inc=20;money+=40;toast('+$40 de alquiler')}}
   beam.material.opacity=.16+.07*Math.sin(performance.now()/300);
@@ -1008,7 +1035,7 @@ function step(dt){frame++;
     let hint='';
     if(P.foot){const cs=nearCarShop(),s=cs?0:nearShop(),n=(s||cs)?0:nearNpc(2.8);
       if(cs)hint='Concesionario '+cs.name+' · B: ver coches';
-      else if(s)hint=(s.name? s.name+' · ':'')+(s.rob>0?'Atracando… no te alejes':s.cool>0?'La caja está vacía · B: comprar':P.w==0?'Equipa un arma (1-4) para atracar':'E: atracar · B: comprar ('+s.type+')');
+      else if(s)hint=(s.name? s.name+' · ':'')+(s.rob>0?'Atracando… no te alejes':s.cool>0?'La caja está vacía · B: comprar':P.w==0?'B: comprar · E: atracar (equipa un arma)':'E: atracar · B: comprar ('+s.type+')');
       else if(Math.hypot(ball.x-P.fx,ball.z-P.fz)<3)hint='E: chutar el balón';else if(nearBar())hint='E: copa $10 (mareo)';else if(nearGraf())hint=(P.spray>0?'E: pintar grafiti':'Compra spray en tienda');else if(n)hint='E: saludar · T: taxi con '+n.name;else if(Math.hypot(P.fx-P.x,P.fz-P.z)<6)hint='F: subir al coche'}
     else{const cs2=nearCarShop();if(cs2)hint=cs2.name+' · baja con F y pulsa B';else if(speed<7)hint='F: bajar del coche'}
     const hn=$('hint');hn.style.display=hint?'block':'none';hn.textContent=hint}
@@ -1076,14 +1103,13 @@ requestAnimationFrame(loop);
 <script src="src/interiors.js?v=9c"></script>
 <script src="src/usables.js?v=9c"></script>
 <script src="src/shops.js?v=9g"></script>
-<script src="src/tienda.js?v=9e"></script>
+<script src="src/tienda.js?v=9f"></script>
 <script src="src/house.js?v=9f"></script>
 <script src="src/detail.js?v=9c"></script>
 <script src="src/cielo.js?v=9e"></script>
 <script src="src/hud.js?v=9c"></script>
-<script src="src/audio.js?v=9f"></script>
+<script src="src/audio.js?v=9h"></script>
 <script src="src/clima.js?v=9e"></script>
-<script src="src/mission_data.js?v=9c"></script>
 <script src="src/missions.js?v=9c"></script>
 <script src="src/wheel.js?v=9c"></script>
 <script src="src/nav.js?v=9g"></script>
@@ -1098,14 +1124,16 @@ requestAnimationFrame(loop);
 <script src="src/mision.js?v=9g"></script>
 <script src="src/intro.js?v=9e"></script>
 <script src="src/cine.js?v=9e"></script>
-<script src="src/gente.js?v=9g"></script>
+<script src="src/gente.js?v=9h"></script>
 <script src="src/vidas.js?v=9d"></script>
-<script src="src/policia.js?v=9h"></script>
+<script src="src/policia.js?v=9j"></script>
 <script src="src/spray.js?v=9b"></script>
 <script src="src/arquitectura.js?v=9d"></script>
 <script src="src/muros.js?v=9b"></script>
 <script src="src/interior2.js?v=9d"></script>
 <script src="src/puertas.js?v=9i"></script>
+<script src="src/acciones_interior.js?v=9c"></script>
+<script src="src/ambiente.js?v=9c"></script>
 <script src="src/pausa.js?v=9f"></script>
 <script src="src/interfaz.js?v=9k"></script>
 <script src="src/boot.js?v=9c"></script>
