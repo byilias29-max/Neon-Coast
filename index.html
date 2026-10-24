@@ -178,7 +178,7 @@ const cloudC=(()=>{const c=cv(512,256),x=c.getContext('2d');
 const cloudTex=new THREE.CanvasTexture(cloudC);cloudTex.encoding=THREE.sRGBEncoding;cloudTex.wrapS=THREE.RepeatWrapping;
 const clouds=new THREE.Mesh(new THREE.SphereGeometry(430,32,16),new THREE.MeshBasicMaterial({map:cloudTex,transparent:true,opacity:.75,depthWrite:false,fog:false,side:THREE.BackSide}));
 clouds.renderOrder=-1;skyG.add(clouds);
-const WX={t:.68,wx:'sol',wt:rnd(300,500),snowMul:1,lastPhase:'tarde'};
+const WX={t:.68,wx:'sol',wt:rnd(300,500),snowMul:1,lastPhase:'tarde',wet:0};
 const SKY=[{t:0,top:'#050514',mid:'#0a0a28',bot:'#1a1a3a',fog:'#0a0a20',sun:'#223',sunI:0,amb:.25,sunC:0x8899ff},
  {t:.2,top:'#2a3a6a',mid:'#c46a8a',bot:'#ffb37a',fog:'#c48a7a',sun:'#ffe0b0',sunI:1.2,amb:.5,sunC:0xffc890},
  {t:.35,top:'#2a7ac4',mid:'#7ac4e8',bot:'#cfeaf2',fog:'#9ac4d4',sun:'#fff8e8',sunI:1.55,amb:.5,sunC:0xfff4e0},
@@ -190,13 +190,17 @@ function paintSky(){const k=skyAt(WX.t),x=sc.getContext('2d'),g=x.createLinearGr
  const ang=WX.t*PI*2-PI/2;sunDir.set(Math.cos(ang)*.7,Math.max(.06,Math.sin(ang)),-.5).normalize();sun.position.copy(sunDir).multiplyScalar(420);sun.lookAt(0,0,0);
  sunL.intensity=Math.max(.15,k.sunI);sunL.color.copy(k.sunC);scene.fog.color.copy(k.fog);sun.material.color.copy(k.sun);
   clouds.material.opacity=.16+.62*Math.max(0,Math.min(1,(k.sunI-.3)/1.7));clouds.material.color.setHex(k.sunI>1.4?0xffffff:(k.sunI>.2?0xc9d6ec:0x6a7a9a));
- const nite=(WX.t>.8||WX.t<.18)?1:(WX.t>.68&&WX.t<.8)?.6:0;bmats.forEach(m=>m.emissiveIntensity=.4+nite*1.05);pool.material.opacity=WX.wx=='lluvia'||WX.wx=='nieve'?.45:.14+nite*.22;
+ const nite=(WX.t>.8||WX.t<.18)?1:(WX.t>.68&&WX.t<.8)?.6:0;bmats.forEach(m=>m.emissiveIntensity=.4+nite*1.05);pool.material.opacity=(WX.wx=='lluvia'||WX.wx=='nieve'?.45:.14+nite*.22) + WX.wet * 0.3;
  rmat.roughness=WX.wx=='lluvia'?.06:WX.wx=='nieve'?.55:.72;rmat.metalness=WX.wx=='lluvia'?.3:.12}
 const precip=new THREE.Points(new THREE.BufferGeometry(),new THREE.PointsMaterial({color:0xcfe4ff,size:.55,transparent:true,opacity:.65,depthWrite:false}));{const pa=new Float32Array(900*3);for(let i=0;i<900;i++){pa[i*3]=rnd(-60,60);pa[i*3+1]=rnd(0,70);pa[i*3+2]=rnd(-60,60)}precip.geometry.setAttribute('position',new THREE.Float32BufferAttribute(pa,3))}precip.frustumCulled=false;precip.visible=false;scene.add(precip);
 function setWeather(w){WX.wx=w;WX.snowMul=w=='nieve'?2:1;precip.visible=w!='sol';precip.material.color.setHex(w=='nieve'?0xffffff:0xcfe4ff);precip.material.size=w=='nieve'?.9:.55;
  const z=$('zone');if(w=='lluvia'){z.textContent='— LLUVIA EN LA COSTA —'}else if(w=='nieve'){z.textContent='— NIEVE · EVENTO EXCLUSIVO x2 —'}else{z.textContent='— VUELVE EL SOL —'}z.style.opacity=1;clearTimeout(z.t);z.t=setTimeout(()=>z.style.opacity=0,2200);paintSky()}
 function phaseName(){return WX.t>.8||WX.t<.18?'noche':WX.t<.3?'amanecer':WX.t<.62?'día':'tarde'}
 function wxTick(dt){WX.t=(WX.t+dt/480)%1;WX.wt-=dt;
+  WX.wet = Math.max(0, Math.min(1, WX.wet + (WX.wx=='lluvia'?0.05:-0.02)*dt));
+  rmat.roughness = 0.72 - WX.wet * 0.66;
+  rmat.metalness = 0.12 + WX.wet * 0.2;
+
  if(WX.wt<=0){const r=Math.random();WX.wt=rnd(360,720);if(r<.03&&WX.wx!='nieve')setWeather('nieve');else if(r<.22)setWeather(WX.wx=='sol'?'lluvia':'sol');else if(WX.wx!='sol')setWeather('sol');WX.wt=WX.wx=='nieve'?rnd(90,160):WX.wt}
  else if(WX.wx=='nieve'&&WX.wt<0)setWeather('sol');
  const ph=phaseName();if(ph!=WX.lastPhase){WX.lastPhase=ph;const z=$('zone');z.textContent=ph=='noche'?'— ANOCHECE EN NEON COAST —':ph=='día'?'— AMANECE —':'— '+ph.toUpperCase()+' —';z.style.opacity=1;clearTimeout(z.t);z.t=setTimeout(()=>z.style.opacity=0,1800)}
@@ -697,21 +701,7 @@ const tgtRing=new THREE.Mesh(new THREE.RingGeometry(1.6,2.6,30),new THREE.MeshBa
 const tgt={x:0,z:0};
 // Misiones, ruta guiada y brujula
 const mis={m:0,s:0,t:0,r0:0,k0:0,e0:0},ip=(i,j)=>({x:i*CELL,z:j*CELL});
-const MIS=[
- {n:'A casa',r:200,s:[{t:'Entra en tu apartamento por la puerta (E)',g:()=>({x:429,z:129})}]},
- {n:'Bienvenida',r:200,s:[{t:'Llega a la playa (este)',g:()=>({x:EXT+18,z:0})}]},
- {n:'Reparto exprés',r:500,s:[{t:'Recoge el paquete',g:()=>ip(-3,2)},{t:'Entrégalo a tiempo',g:()=>ip(3,-3),lim:90}]},
- {n:'Primer golpe',r:800,s:[{t:'Atraca una tienda con un arma (E)',rob:1,g:()=>{let b=null,bd=1e9;for(const s of shops)if(s.cool<=0){const d=Math.hypot(s.x-P.x,s.z-P.z);if(d<bd){bd=d;b=s}}return b||ip(0,0)}},{t:'Despista a la policía',ev:1}]},
- {n:'Carrera costera',r:1000,s:[ip(-2,-3),ip(2,-3),ip(3,1),ip(0,3)].map((p,i)=>({t:'Punto de control '+(i+1)+'/4',g:()=>p,lim:32}))},
- {n:'Cazador novato',r:700,s:[{t:'Noquea a 2 peatones o polis (ataca de cerca o dispara)',kill:2}]},
- {n:'Velocidad máxima',r:600,s:[{t:'Alcanza 110 km/h en coche',speed:110}]},
- {n:'Doble golpe',r:1200,s:[{t:'Atraca 2 tiendas (E con arma)',rob:2},{t:'Escapa con 2+ estrellas y despista',ev:1,wanted:2}]},
- {n:'Repartidor incansable',r:1300,s:[{t:'Recoge en el puerto',g:()=>ip(-4,-2)},{t:'Entrega norte (60s)',g:()=>ip(1,4),lim:60},{t:'Entrega playa (60s)',g:()=>({x:EXT+18,z:20}),lim:60}]},
- {n:'Fuga extrema',r:1400,s:[{t:'Lía una (atraca o ataca) hasta 3 estrellas',wanted:3},{t:'Despista a la policía',ev:1}]},
- {n:'Inversor',r:1000,s:[{t:'Consigue $2500 en mano (atracos + misiones)',cash:2500}]},
- {n:'Tour de tiendas',r:900,s:[{t:'Visita el Super del centro',g:()=>{const s2=shops.find(q=>q.type=='Super')||shops[0];return{x:s2.x,z:s2.z}}},{t:'Visita la Armería',g:()=>{const s2=shops.find(q=>q.type=='Armeria')||shops[1];return{x:s2.x,z:s2.z}}}]},
- {n:'Tunea tu máquina',r:800,s:[{t:'Compra algo en un concesionario naranja (B)',buycar:1,g:()=>{let b=carShops[0],bd=1e9;for(const s2 of carShops){const d=Math.hypot(s2.x-P.x,s2.z-P.z);if(d<bd){bd=d;b=s2}}return{x:b.x,z:b.z}}}]},
- {n:'Dinero con rumbo',r:1500,s:[{t:'Compra el apartamento: B junto a una tienda',buy:1}]}];
+const MIS = NC.missions.data;
 function freeMis(){const k=pick(['reparto','golpe','caza','vel']);const a=Math.round(rnd(-3,3)),b=Math.round(rnd(-3,3)),c=Math.round(rnd(-3,3)),d=Math.round(rnd(-3,3));
  if(k=='golpe')return{n:'Golpe libre',r:600,s:[{t:'Atraca una tienda',rob:1},{t:'Despista a la poli',ev:1}]};
  if(k=='caza')return{n:'Caza libre',r:500,s:[{t:'Noquea a 2 (pelea o dispara)',kill:2}]};
@@ -985,9 +975,13 @@ function step(dt){frame++;
     if(k.down>0){k.down-=dt;if(k.svx){k.x+=k.svx*dt;k.z+=k.svz*dt;k.svx*=Math.exp(-3*dt);k.svz*=Math.exp(-3*dt)}}
     k.fall=Math.min(1,(k.fall||0)+dt*2.5);g.rotation.x=-PI/2*k.fall;g.position.set(k.x,gh(k.x,k.z)+(k.down>0?.25:0),k.z);
     if(k.down<=0&&d2>15625){scene.remove(g);copsDead.splice(i,1)}}
-  // Trafico
+  // Trafico mejorado
   for(const c of ai){if(c.off)continue;c.stun=Math.max(0,c.stun-dt);let ts=c.stun>0?0:c.base;const cx=c.g.position.x,cz=c.g.position.z;
-  {const ck=Math.round(cx/CELL)+','+Math.round(cz/CELL);if(LX[ck]){const nx2=Math.round(cx/CELL)*CELL,nz2=Math.round(cz/CELL)*CELL,rel=(nx2-cx)*DX[c.dir]+(nz2-cz)*DZ[c.dir],lat=Math.abs((nx2-cx)*DZ[c.dir]-(nz2-cz)*DX[c.dir]),ax=DX[c.dir]!=0,gx=(Math.floor(performance.now()/8000)%2==0);if(rel>0&&rel<11&&lat<3.2&&((ax&&!gx)||(!ax&&gx)))ts=0}}
+  {const ck=Math.round(cx/CELL)+','+Math.round(cz/CELL);if(LX[ck]){
+    const rel=(Math.round(cx/CELL)*CELL-cx)*DX[c.dir]+(Math.round(cz/CELL)*CELL-cz)*DZ[c.dir],lat=Math.abs((Math.round(cx/CELL)*CELL-cx)*DZ[c.dir]-(Math.round(cz/CELL)*CELL-cz)*DX[c.dir]);
+    const sIdx = Object.keys(LX).indexOf(ck);
+    if(sIdx>=0 && sems[sIdx] && sems[sIdx].rM.color.r > 0.5 && rel>0 && rel<11 && lat<3.2) ts=0;
+  }}
     for(let q=0;q<=ai.length;q++){let ox,oz,od=-1;if(q<ai.length){const o=ai[q];if(o===c)continue;ox=o.g.position.x-cx;oz=o.g.position.z-cz;od=o.dir}else{ox=px-cx;oz=pz-cz}
       const rel=ox*DX[c.dir]+oz*DZ[c.dir];if(rel>0&&rel<14&&Math.abs(ox*DZ[c.dir]-oz*DX[c.dir])<2.4&&(od<0||od==c.dir))ts=0}
     c.spd+=(ts-c.spd)*Math.min(1,4*dt);c.x+=DX[c.dir]*c.spd*dt;c.z+=DZ[c.dir]*c.spd*dt;
@@ -1089,6 +1083,7 @@ requestAnimationFrame(loop);
 <script src="src/hud.js?v=9c"></script>
 <script src="src/audio.js?v=9f"></script>
 <script src="src/clima.js?v=9e"></script>
+<script src="src/mission_data.js?v=9c"></script>
 <script src="src/missions.js?v=9c"></script>
 <script src="src/wheel.js?v=9c"></script>
 <script src="src/nav.js?v=9g"></script>

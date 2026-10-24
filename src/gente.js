@@ -356,8 +356,8 @@
           } catch (e) { }
           if (esActor) return _int && _int.apply(this, arguments);
           const idx = npcs.indexOf(n);
-          // si hay policia cerca y el jugador esta buscado, huyen
-          if (P.wanted >= 2 && Math.random() < .5) {
+          // si hay policia cerca o el jugador va armado, huyen
+          if ((P.wanted >= 2 || P.w >= 2) && Math.random() < .5) {
             n.flee = 8; crime(1.1,'infraccion');
             toast('¡' + n.name + ': «¡La policia! ¡Que viene la poli!»');
             return;
